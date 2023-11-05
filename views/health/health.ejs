@@ -9,7 +9,7 @@
 	<nav aria-label="breadcrumb">
 		<ol class="breadcrumb">
 		<li class="breadcrumb-item me-2"><img src="/menu.png" width="16" height="16"></li>
-		<li class="breadcrumb-item"><a href="/main">首頁</a></li>
+		<li class="breadcrumb-item"><a href="/main" class="bread-text">首頁</a></li>
 		<li class="breadcrumb-item active" aria-current="page">案主健康紀錄</li>
 		</ol>
 	</nav>
@@ -43,11 +43,24 @@
 	</div>
 	</div>
 	</div>
+	<div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header" style="background-color: rgb(11,59,79)">
+            <h5 class="modal-title" style="color: white" id="exampleModalLabel"><b>詳細案主健康紀錄</b></h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table" id="detail_tab"></table>
+            </div>
+          </div>
+        </div>
+      </div>
 	<%- include('../sos') %>
 	<script src = 'https://cdnjs.cloudflare.com/ajax/libs/axios/0.27.2/axios.min.js' ></script>
 	<script>
 		var tb1 = document.getElementById('tab1');
-		const tab1_th = '<thead class="table-primary"><tr><th scope="col">No.</th><th scope="col">案主編號</th><th scope="col">姓</th><th scope="col">名</th><th scope="col">日期</th><th scope="col">其他功能</th></tr>';
+		const tab1_th = '<thead><tr id=tr_th><th scope="col" style="background-color:rgb(11,59,79);color:white">No.</th><th scope="col" style="background-color:rgb(11,59,79);color:white">案主編號</th><th scope="col" style="background-color:rgb(11,59,79);color:white">姓</th><th scope="col" style="background-color:rgb(11,59,79);color:white">名</th><th scope="col" style="background-color:rgb(11,59,79);color:white">日期</th><th scope="col" style="background-color:rgb(11,59,79);color:white">其他功能</th></tr>';
 		var id;
 		var name;
 		var date;
@@ -126,7 +139,7 @@
 				console.error(error);
 			});
 		function get_tb1_tb(health,i) {
-			return `<tr id=tr${i%10+1}><td>${i+1}</td><td>${health[i].s_num}</td><td>${health[i].ct_lastname}</td><td>${health[i].ct_name}</td><td>${health[i].date}</td><td><button type="button" class="btn btn-primary mx-1" onclick="window.location.href='/health/detail/${health[i].s_num}/${health[i].date}'">詳細</button></td></tr>`;
+			return `<tr id=tr${i%10+1}><td>${i+1}</td><td>${health[i].s_num}</td><td>${health[i].ct_lastname}</td><td>${health[i].ct_name}</td><td>${health[i].date}</td><td><button type="button" class="btn btn1 mx-1" data-bs-toggle="modal" data-bs-target="#detailModal" onclick="show_detail(${health[i].s_num},${health[i].date})">詳細</button></td></tr>`;
 		}
 		function next() {
 			tab1.innerHTML = tab1_th;
@@ -236,6 +249,38 @@
 				}
 			}
 		})
+		function show_detail(id, this_date) {
+			axios.get(`/api/health/${id}/${this_date}`)
+				.then(response => {
+					detail_tab = document.getElementById('detail_tab');
+                                        detail_tab.innerHTML = "";
+                                        let detail = response.data;
+                                        var text = "";
+					text += `<tr><td>案主編號</td><td>${detail.s_num}</td></tr><tr><td>姓名</td><td>${detail.ct_lastname}${detail.ct_name}</td></tr><tr><td>日期</td><td>${detail.date}</td></tr><tr><td>是否有看到案主</td>`
+					if (detail.status1 === 0) {
+						text += `<td>沒有</td></tr>`;
+                                	} else {
+						text += `<td>有</td></tr>`;
+                                	}
+					text += `<tr><td>案主是否有狀況</td>`
+					if (detail.status2 === 0) {
+						text += `<td>無狀況</td></tr>`;
+                                	} else {
+						text += `<td>有狀況</td></tr>`;
+                                	}
+					text += `<tr><td>備註</td><td>${detail.remark}</td></tr><tr><td>圖片</td>`
+					if (detail.cs_img == null) {
+						text += `<td>無圖片</td></tr>`;
+                                	} else {
+						text += `<td><img src="/status/${health.cs_img}" style="width:100px; height:100px;"></td></tr>`;
+                                	}
+					text += `<tr><td>記錄送餐員編號</td><td><a href="/detail/${detail.bo_s_num}">${detail.bo_s_num}</a></td></tr>`;
+                                        detail_tab.innerHTML += text;
+                                })
+                                .catch(error => {
+                                        console.error(error);
+                                });
+                }
 	</script>
 							
 </body>

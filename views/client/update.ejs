@@ -82,7 +82,6 @@
 	<script>
 		// 先取得原本資料
 		const id = '<%= id %>';
-		console.log(id);
 		const form = document.getElementById('updateForm');
 		axios.get(`/api/client/${id}`)
 			.then(response => {

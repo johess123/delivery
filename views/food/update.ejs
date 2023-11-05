@@ -9,8 +9,8 @@
 	<nav aria-label="breadcrumb">
 		<ol class="breadcrumb">
 		<li class="breadcrumb-item me-2"><img src="/menu.png" width="16" height="16"></li>
-		<li class="breadcrumb-item"><a href="/main">首頁</a></li>
-		<li class="breadcrumb-item"><a href="/food">管理菜色</a></li>
+		<li class="breadcrumb-item"><a href="/main" class="bread-text">首頁</a></li>
+		<li class="breadcrumb-item"><a href="/food" class="bread-text">管理菜色</a></li>
 		<li class="breadcrumb-item active" aria-current="page">修改菜色資料</li>
 		</ol>
 	</nav>
@@ -18,9 +18,9 @@
 		<div class="row justify-content-center">
 		<div class="col-md-6">
 			<div class="card">
-				<div class="card-header">
+				<div class="card-header d-flex justify-content-between align-items-center" style="background-color:rgb(11,59,79); color:white">
 					<strong>修改菜色資料</strong>
-					<button type="button" class="btn btn-primary btn-sm float-end" onclick="addField()">新增描述欄位</button>
+					<button type="button" class="btn btn2 btn-sm float-end" onclick="addField()">新增描述欄位</button>
 				</div>
 				<div class="card-body">
 				<form id="updateForm">
@@ -48,7 +48,7 @@
 				<div id="newFields"></div>
 				<div class="text-center">
 				  <button type="button" class="btn btn-light" onclick="window.location.href='/food'">取消</button>
-				  <button type="submit" class="btn btn-primary">修改</button>
+				  <button type="submit" class="btn btn4">修改</button>
 				</div>
 				</form>
 			</div>
@@ -90,7 +90,7 @@
 					newInput.value = text[i]
 					var deleteButton = document.createElement('button');
 					deleteButton.type = 'button';
-					deleteButton.className = 'ms-2 btn btn-danger';
+					deleteButton.className = 'ms-2 btn btn3';
 					deleteButton.textContent = '刪除';
 					const now_id = fieldCounter;
 					deleteButton.onclick = function() {

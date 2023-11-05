@@ -10,8 +10,8 @@
 	<nav aria-label="breadcrumb">
 		<ol class="breadcrumb">
 		<li class="breadcrumb-item me-2"><img src="/menu.png" width="16" height="16"></li>
-		<li class="breadcrumb-item"><a href="/main">首頁</a></li>
-		<li class="breadcrumb-item"><a href="/bento">管理便當</a></li>
+		<li class="breadcrumb-item"><a href="/main" class="bread-text">首頁</a></li>
+		<li class="breadcrumb-item"><a href="/bento" class="bread-text">管理便當</a></li>
 		<li class="breadcrumb-item active" aria-current="page">新增便當資料</li>
 		</ol>
 	</nav>
@@ -19,9 +19,9 @@
 		<div class="row justify-content-center">
 		<div class="col-md-6">
 			<div class="card">
-				<div class="card-header">
+				<div class="card-header d-flex justify-content-between align-items-center" style="background-color:rgb(11,59,79);color:white">
 					<strong>新增便當資料</strong>
-					<button type="button" class="btn btn-primary btn-sm float-end" onclick="addField()">新增菜色欄位</button>
+					<button type="button" class="btn btn2 btn-sm float-end" onclick="addField()">新增菜色欄位</button>
 				</div>
 				<div class="card-body">
 				<form id="bentoForm">
@@ -33,13 +33,13 @@
 					<label class="form-label">菜色1</label>
 					<div class="input-group">
 						<select class="form-select" name="food1" id="food1" required></select>
-						<button type="button" class="btn btn-light ms-2" onclick="check('1')">確認</button>
+						<button type="button" class="btn btn1 ms-2" onclick="check('1')">確認</button>
 					</div>
 				</div>
 				<div id="newFields"></div>
 				<div class="text-center">
 					<button type="button" class="btn btn-light" onclick="window.location.href='/bento'">取消</button>
-					<button type="submit" class="btn btn-primary">新增</button>
+					<button type="submit" class="btn btn4">新增</button>
 				</div>
 				</form>
 			</div>
@@ -97,7 +97,7 @@
 				newSelect.required = true;
 				var checkButton = document.createElement('button');
 				checkButton.type = 'button';
-				checkButton.className = 'ms-2 btn btn-light';
+				checkButton.className = 'ms-2 btn btn1';
 				checkButton.textContent = '確認';
 				const now_id = fieldCounter;
 				checkButton.onclick = function() {
@@ -105,7 +105,7 @@
 				};
 				var deleteButton = document.createElement('button');
 				deleteButton.type = 'button';
-				deleteButton.className = 'ms-2 btn btn-danger';
+				deleteButton.className = 'ms-2 btn btn3';
 				deleteButton.textContent = '刪除';
 				deleteButton.onclick = function() {
 					deleteField(now_id);

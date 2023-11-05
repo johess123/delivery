@@ -2,11 +2,15 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
 <style>
   .nav-link {
+    border: 1px solid rgb(11,59,79);
     color: white;
+    transform: scale(1);
+    transition: .3s;
   }
-  .nav-link:hover { 
+  .nav-link:hover {
     border: 1px solid rgb(186,145,89); 
     color: rgb(186,145,89);
+    transform: scale(1.1);
   }
   .page-item.active {
     z-index: -1;
@@ -103,74 +107,74 @@
       </a> 
       <ul class="nav nav-pills flex-column mb-auto mt-4">
         <li class="nav-item">
-          <a href="/main" id="/main" class="nav-link" aria-current="page">
-            <svg class="bi me-2" width="20" height="20"><image id="/main-img" xlink:href="/main1.png" width="20" height="20"/></svg>
+          <a href="/main" id="main" class="nav-link" aria-current="page">
+            <svg class="bi me-2" width="20" height="20"><image id="main_img" xlink:href="/main1.png" width="20" height="20"/></svg>
             首頁
           </a>
         </li>
         <li>
-          <a href="/client" id="/client" class="nav-link">
-            <svg class="bi me-2" width="20" height="20"><image id="/client-img" xlink:href="/client1.png" width="20" height="20"/></svg>
+          <a href="/client" id="client" class="nav-link">
+            <svg class="bi me-2" width="20" height="20"><image id="client_img" xlink:href="/client1.png" width="20" height="20"/></svg>
             管理案主
           </a>
         </li>
         <li>
-          <a href="/route" id="/route" class="nav-link">
-            <svg class="bi me-2" width="20" height="20"><image id="/route-img" xlink:href="/route1.png" width="20" height="20"/></svg>
+          <a href="/route" id="route" class="nav-link">
+            <svg class="bi me-2" width="20" height="20"><image id="route_img" xlink:href="/route1.png" width="20" height="20"/></svg>
             管理路線
           </a>
         </li>
         <li>
-          <a href="/delivery" id="/delivery" class="nav-link">
-            <svg class="bi me-2" width="20" height="20"><image id="/delivery-img" xlink:href="/delivery1.png" width="20" height="20"/></svg>
+          <a href="/delivery" id="delivery" class="nav-link">
+            <svg class="bi me-2" width="20" height="20"><image id="delivery_img" xlink:href="/delivery1.png" width="20" height="20"/></svg>
             管理送餐員
           </a>
         </li>
         <li>
-          <a href="/food" id="/food" class="nav-link">
-            <svg class="bi me-2" width="20" height="20"><image id="/food-img" xlink:href="/food1.png" width="20" height="20"/></svg>
+          <a href="/food" id="food" class="nav-link">
+            <svg class="bi me-2" width="20" height="20"><image id="food_img" xlink:href="/food1.png" width="20" height="20"/></svg>
             管理菜色
           </a>
         </li>
         <li>
-          <a href="/bento" id="/bento" class="nav-link">
-            <svg class="bi me-2" width="20" height="20"><image id="/bento-img" xlink:href="/bento1.png" width="20" height="20"/></svg>
+          <a href="/bento" id="bento" class="nav-link">
+            <svg class="bi me-2" width="20" height="20"><image id="bento_img" xlink:href="/bento1.png" width="20" height="20"/></svg>
             管理便當
           </a>
         </li>
         <li>
-          <a href="/health" id="/health" class="nav-link">
-            <svg class="bi me-2" width="20" height="20"><image id="/health-img" xlink:href="/health1.png" width="20" height="20"/></svg>
+          <a href="/health" id="health" class="nav-link">
+            <svg class="bi me-2" width="20" height="20"><image id="health_img" xlink:href="/health1.png" width="20" height="20"/></svg>
             案主健康紀錄
           </a>
         </li>
         <li>
-          <a href="/report" id="/report" class="nav-link">
-            <svg class="bi me-2" width="20" height="20"><image id="/report-img" xlink:href="/report1.png" width="20" height="20"/></svg>
+          <a href="/report" id="report" class="nav-link">
+            <svg class="bi me-2" width="20" height="20"><image id="report_img" xlink:href="/report1.png" width="20" height="20"/></svg>
             管理報表
           </a>
         </li>
         <li>
-          <a href="/carbon" id="/carbon" class="nav-link">
-            <svg class="bi me-2" width="20" height="20"><image id="/carbon-img" xlink:href="/carbon1.png" width="20" height="20"/></svg>
+          <a href="/carbon" id="carbon" class="nav-link">
+            <svg class="bi me-2" width="20" height="20"><image id="carbon_img" xlink:href="/carbon1.png" width="20" height="20"/></svg>
             路線碳排放
           </a>
         </li>
         <li>
-          <a href="/punch" id="/punch" class="nav-link">
-            <svg class="bi me-2" width="20" height="20"><image id="/punch-img" xlink:href="/punch1.png" width="20" height="20"/></svg>
+          <a href="/punch" id="punch" class="nav-link">
+            <svg class="bi me-2" width="20" height="20"><image id="punch_img" xlink:href="/punch1.png" width="20" height="20"/></svg>
             簽到簽退紀錄
           </a>
         </li>
         <li>
-          <a href="/opinion" id="/opinion" class="nav-link">
-            <svg class="bi me-2" width="20" height="20"><image id="/opinion-img" xlink:href="/opinion1.png" width="20" height="20"/></svg>
+          <a href="/opinion" id="opinion" class="nav-link">
+            <svg class="bi me-2" width="20" height="20"><image id="opinion_img" xlink:href="/opinion1.png" width="20" height="20"/></svg>
             使用者意見回饋
           </a>
         </li>
         <li>
-          <a href="/analysis" id="/analysis" class="nav-link">
-            <svg class="bi me-2" width="20" height="20"><image id="/analysis-img" xlink:href="/analysis1.png" width="20" height="20"/></svg>
+          <a href="/analysis" id="analysis" class="nav-link">
+            <svg class="bi me-2" width="20" height="20"><image id="analysis_img" xlink:href="/analysis1.png" width="20" height="20"/></svg>
             停留時間分析
           </a>
         </li>
@@ -194,19 +198,95 @@
   </div>
   </div>
 <script>
+base_url = "http://163.22.17.184:5000/"
+var img_array = {};
+var main_img = new Image();
+main_img.src = `${base_url}main.png`;
+img_array.main = main_img.src;
+var main1_img = new Image();
+main1_img.src = `${base_url}main1.png`;
+img_array.main1 = main1_img.src;
+var client_img = new Image();
+client_img.src = `${base_url}client.png`;
+img_array.client = client_img.src;
+var client1_img = new Image();
+client1_img.src = `${base_url}client1.png`;
+img_array.client1 = client1_img.src;
+var route_img = new Image();
+route_img.src = `${base_url}route.png`;
+img_array.route = route_img.src;
+var route1_img = new Image();
+route1_img.src = `${base_url}route1.png`;
+img_array.route1 = route1_img.src;
+var delivery_img = new Image();
+delivery_img.src = `${base_url}delivery.png`;
+img_array.delivery = delivery_img.src;
+var delivery1_img = new Image();
+delivery1_img.src = `${base_url}delivery1.png`;
+img_array.delivery1 = delivery1_img.src;
+var food_img = new Image();
+food_img.src = `${base_url}food.png`;
+img_array.food = food_img.src;
+var food1_img = new Image();
+food1_img.src = `${base_url}food1.png`;
+img_array.food1 = food1_img.src;
+var bento_img = new Image();
+bento_img.src = `${base_url}bento.png`
+img_array.bento = bento_img.src;
+var bento1_img = new Image();
+bento1_img.src = `${base_url}bento1.png`
+img_array.bento1 = bento1_img.src;
+var health_img = new Image();
+health_img.src = `${base_url}health.png`
+img_array.health = health_img.src;
+var health1_img = new Image();
+health1_img.src = `${base_url}health1.png`
+img_array.health1 = health1_img.src;
+var report_img = new Image();
+report_img.src = `${base_url}report.png`;
+img_array.report = report_img.src;
+var report1_img = new Image();
+report1_img.src = `${base_url}report1.png`;
+img_array.report1 = report1_img.src;
+var carbon_img = new Image();
+carbon_img.src = `${base_url}carbon.png`;
+img_array.carbon = carbon_img.src;
+var carbon1_img = new Image();
+carbon1_img.src = `${base_url}carbon1.png`;
+img_array.carbon1 = carbon1_img.src;
+var punch_img = new Image();
+punch_img.src = `${base_url}punch.png`;
+img_array.punch = punch_img.src;
+var punch1_img = new Image();
+punch1_img.src = `${base_url}punch1.png`;
+img_array.punch1 = punch1_img.src;
+var opinion_img = new Image();
+opinion_img.src = `${base_url}opinion.png`;
+img_array.opinion = opinion_img.src;
+var opinion1_img = new Image();
+opinion1_img.src = `${base_url}opinion1.png`;
+img_array.opinion1 = opinion1_img.src;
+var analysis_img = new Image();
+analysis_img.src = `${base_url}analysis.png`;
+img_array.analysis = analysis_img.src;
+var analysis1_img = new Image();
+analysis1_img.src = `${base_url}analysis1.png`;
+img_array.analysis1 = analysis1_img.src;
 // 該頁面的菜單圖片和文字要換顏色
-now_url = "/"+window.location.pathname.split("/")[1];
+now_url = window.location.pathname.split("/")[1];
 document.getElementById(now_url).classList.add("active_1");
-document.getElementById(`${now_url}-img`).setAttribute("xlink:href",`${now_url}.png`);
+document.getElementById(`${now_url}_img`).setAttribute("xlink:href", img_array[now_url]);
 // 其他頁面的菜單圖片和文字用 hover 來換顏色
 nav_links = document.querySelectorAll('.nav-link');
 nav_links.forEach(nav_link => {
     if (nav_link.id != now_url) {
     	nav_link.addEventListener('mouseover', () => {
-        	document.getElementById(`${nav_link.id}-img`).setAttribute("xlink:href",`${nav_link.id}.png`);
+		now_id = nav_link.id;
+        	document.getElementById(`${nav_link.id}_img`).setAttribute("xlink:href",img_array[now_id]);
     	});
-    	nav_link.addEventListener('mouseout', () => { 
-        	document.getElementById(`${nav_link.id}-img`).setAttribute("xlink:href",`${nav_link.id}1.png`);
+    	nav_link.addEventListener('mouseout', () => {
+		now_id = nav_link.id; 
+        	document.getElementById(`${nav_link.id}_img`).setAttribute("xlink:href",img_array[now_id+1]);
     	});
     }
 })
