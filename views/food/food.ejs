@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>管理菜色</title>
+</head>
+<body>
+	<%- include('../function') %>
+	<div class="col py-3">
+		<nav aria-label="breadcrumb">
+			<ol class="breadcrumb">
+			<li class="breadcrumb-item me-2"><img src="/menu.png" width="16" height="16"></li>
+			<li class="breadcrumb-item"><a href="/main" class="bread-text">首頁</a></li>
+			<li class="breadcrumb-item active" aria-current="page">管理菜色</li>
+			</ol>
+		</nav>
+	<form id="searchForm" method="GET">
+		<div class="row mt-5">
+			<div class="col-lg-2">
+				<input type="text" id="id" name="id" class="form-control" placeholder="菜色編號">
+			</div>
+			<div class="col-lg-2">
+				<input type="text" id="name" name="name" class="form-control" placeholder="名稱">
+			</div>
+			<div class="col-lg-2">
+				<input type="text" id="name" name="name" class="form-control" placeholder="價錢">
+			</div>
+			<div class="col-lg-3">
+	
+				<button type="submit" class="btn btn4">
+					<img src="/search.png" width="16">
+					<span>查詢</span>
+				</button>
+				<button type="button" class="btn btn5" onclick="window.location.href='/food'">
+					<span>重置</span>
+				</button>
+				<button type="button" class="btn btn6" onclick="window.location.href='/food/create'">+ 新增菜色</button>
+			</div>
+		</div>
+	</form>
+	<div id="tab" class="mt-4">
+		<table class="table table-bordered" id="tab1">
+		</table>
+	</div>
+	<div id="tab2" class="d-flex justify-content-end"></div>
+	</div>
+	</div>
+	</div>
+	<div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header" style="background-color: rgb(11,59,79)">
+            <h5 class="modal-title" style="color: white" id="exampleModalLabel"><b>詳細菜色資料</b></h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table" id="detail_tab"></table>
+            </div>
+          </div>
+        </div>
+      </div>
+	<%- include('../sos') %>
+	<script src = 'https://cdnjs.cloudflare.com/ajax/libs/axios/0.27.2/axios.min.js' ></script>
+	<script>
+		var tab1 = document.getElementById('tab1');
+		const tab1_th = '<thead><tr id=tr_th><th scope="col" style="background-color:rgb(11,59,79);color: white">No.</th><th scope="col" style="background-color:rgb(11,59,79);color: white">菜色編號</th><th scope="col" style="background-color:rgb(11,59,79);color: white">名稱</th><th scope="col" style="background-color:rgb(11,59,79);color: white">價錢</th><th scope="col" style="background-color:rgb(11,59,79);color: white">其他功能</th></tr></thead>';
+		var id;
+		var name;
+		var price;
+		var food;
+		var search_food;
+		var on_search = false; // 是否在搜尋狀態 
+		var page = 1; // 目前頁數
+		var page_display = 5; // 一頁顯示幾筆
+		var total_page; // 總共幾頁
+		function pagination(pos,now_page) {
+			if (pos === "one") {
+	       			return `<nav aria-label="Page navigation example">
+			  	<ul class="pagination">
+			    	<li class="page-item active"><a class="page-link">1</a></li>
+			  	</ul>
+				</nav>`;
+			} else if (pos === "first") {
+				return `<nav aria-label="Page navigation example">
+			  	<ul class="pagination">
+	       		    	<li class="page-item active"><a class="page-link">${now_page}</a></li>
+			    	<li class="page-item">
+			      	<a class="page-link" href="#" aria-label="Next" onclick="next()">
+			        <span aria-hidden="true">&raquo;</span>
+			      	</a>
+			    	</li>
+			  	</ul>
+				</nav>`;
+			} else if (pos === "center") {
+				return `<nav aria-label="Page navigation example">
+			  	<ul class="pagination">
+				<li class="page-item">
+				<a class="page-link" href="#" aria-label="Previous" onclick="prev()">
+			        <span aria-hidden="true">&laquo;</span>
+			      	</a>
+			    	</li>
+	       		    	<li class="page-item active"><a class="page-link">${now_page}</a></li>
+			    	<li class="page-item">
+			      	<a class="page-link" href="#" aria-label="Next" onclick="next()">
+			        <span aria-hidden="true">&raquo;</span>
+			      	</a>
+			    	</li>
+			  	</ul>
+				</nav>`;
+			} else {
+				return `<nav aria-label="Page navigation example">
+			  	<ul class="pagination">
+			    	<li class="page-item">
+			      	<a class="page-link" href="#" aria-label="Previous" onclick="prev()">
+			        <span aria-hidden="true">&laquo;</span>
+			      	</a>
+			    	</li>
+	       		  	<li class="page-item active"><a class="page-link">${now_page}</a></li>
+			  	</ul>
+				</nav>`;
+			}
+		};
+		getFood();
+		// 取得菜色資料
+		function getFood() {
+			axios.get('/api/food')
+				.then(response => {
+					tab1.innerHTML = tab1_th;
+					food = response.data;
+					for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+						if (i < food.length) {
+							tab1.innerHTML += get_tb1_tb(food,i);
+						}
+					}
+					total_page = Math.ceil(food.length/page_display);
+					if (page < total_page) {
+						tab2.innerHTML = pagination('first',page);
+					} else {
+						tab2.innerHTML = pagination('one',1)
+					}
+				})
+				.catch(error => {
+					console.error(error);
+				});
+		}
+		function get_tb1_tb(food,i) {
+			return `<tr id=tr${i%10+1}><td>${i+1}</td><td>${food[i].s_num}</td><td>${food[i].ds_name}</td><td>${food[i].price}</td><td><button type="button" class="btn btn1 mx-1" data-bs-toggle="modal" data-bs-target="#detailModal" onclick="show_detail(${food[i].s_num})">詳細</button><button type="button" class="btn btn2 mx-1" onclick="window.location.href='/food/update/${food[i].s_num}'">修改</button><button type="button" class="btn btn3 mx-1" onclick="deleteFood(${food[i].s_num})">刪除</button></td></tr>`
+		}
+		function prev() {
+			tab1.innerHTML = tab1_th;
+			page -= 1
+			for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+				if (on_search == false) {
+					if (i < food.length) {
+						tab1.innerHTML += get_tb1_tb(food,i);
+					}	
+				} else {
+					if (i < search_food.length) {
+						tab1.innerHTML += get_tb1_tb(search_food,i);
+					}
+				}
+			}
+			if (page > 1) {
+				tab2.innerHTML = pagination("center",page);
+			} else {
+				tab2.innerHTML = pagination("first",page)
+			}
+		}
+		function next() {
+			tab1.innerHTML = tab1_th
+			page += 1
+			for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+				if (on_search == false) {
+					if (i < food.length) {
+						tab1.innerHTML += get_tb1_tb(food,i);
+					}
+				} else {
+					if (i < search_food.length) {
+						tab1.innerHTML += get_tb1_tb(search_food,i);
+					}
+				}
+			}
+			if (page < total_page) {
+				tab2.innerHTML = pagination("center",page);
+			} else {
+				tab2.innerHTML = pagination("last",page);
+			}
+		}
+		function last() {
+			tab1.innerHTML = tab1_th;
+			page = total_page;
+			for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+				if (on_search == false) {
+					if (i < food.length) {
+						tab1.innerHTML += get_tb1_tb(food,i);
+					}
+				} else {
+					if (i < search_food.length) {
+						tab1.innerHTML += get_tb1_tb(search_food,i);
+					}
+				}
+			}
+			tab2.innerHTML += pagination("last",page);
+		}
+		function first() {
+			tab1.innerHTML = tab1_th;
+			page = 1;
+			for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+				if (on_search == false) {
+					if (i < food.length) {
+						tab1.innerHTML += get_tb1_tb(food,i);
+					}
+				} else {
+					if (i < search_food.length) {
+						tab1.innerHTML += get_tb1_tb(search_food,i);
+					}
+				}
+			}
+			tab1.innerHTML += pagination("first",page);
+		}
+		document.getElementById("searchForm").addEventListener('submit', function(event) {
+			event.preventDefault();
+			on_search = true;
+			id = document.getElementById("searchForm").querySelectorAll('input')[0].value;
+			name = document.getElementById("searchForm").querySelectorAll('input')[1].value;
+			price = document.getElementById("searchForm").querySelectorAll('input')[2].value;
+			search_food = food;
+			if (id !== "") {
+				search_food = search_food.filter(this_food => this_food.s_num.toString().startsWith(id));
+			}
+			if (name !== "") {
+				search_food = search_food.filter(this_food => this_food.ds_name.startsWith(name));
+			}
+			if (price !== "") {
+				search_food = search_food.filter(this_food => this_food.price.toString().startsWith(price));
+			}
+			tab1.innerHTML = tab1_th;
+			if (search_food.length == 0) {
+				tab1.innerHTML = '<h3>查無菜色！</h3>';
+				tab2.innerHTML = "";
+			} else {
+				page = 1;
+				for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+					if (i < search_food.length) {
+						tab1.innerHTML += get_tb1_tb(search_food,i);
+					}
+				}
+				total_page = Math.ceil(search_food.length/page_display);
+				if (page < total_page) {
+					tab2.innerHTML = pagination("first",page);
+				} else {
+					tab2.innerHTML = pagination("one",i);
+				}
+			}
+		});
+		function modifyDes(text) { // 調整描述
+			const text1 = text.split("//");
+			var result = "";
+			for (let i = 0; i < text1.length; i++) {
+				result = result+"("+(i+1)+") "+text1[i]+"<br>";
+			}
+			return result;
+		}
+		function deleteFood(id) {
+			const {suc : t} = axios.delete(`/food/delete/${id}`)
+				.then(response => {
+					if (response.data.suc == true) {
+						alert('成功刪除菜色資料！');
+						window.location.href='/food';
+					}
+				})
+				.catch(error => {
+					console.error(error);
+				});
+		}
+		function show_detail(id) {
+			axios.get(`/api/food/${id}`)
+				.then(response => {
+					detail_tab = document.getElementById('detail_tab');
+					detail_tab.innerHTML = "";
+					let detail = response.data;
+					var text = "";
+					text += `<tr><td class="text-nowrap">菜色編號</td><td>${detail.s_num}</td></tr><tr><td class="text-nowrap">名稱</td><td>${detail.ds_name}</td></tr><tr><td class="text-nowrap">葷素</td>`
+                                	const food_type = detail.description.split("//")[0];
+                                	if (food_type === "葷") {
+                                        	text += "<td>葷食</td>";
+                               	 	} else {
+                                        	text += "<td>素食</td>";
+                                	}
+                                	const description = modifyDes(detail.description);
+					text += `</tr><tr><td class="text-nowrap">描述</td><td>${description}</td></tr>`;
+					text += `<tr><td class="text-nowrap">價錢</td><td>${detail.price}</td></tr>`;
+                                	detail_tab.innerHTML += text;
+                        	})
+                        	.catch(error => {
+                                	console.error(error);
+                        	});
+		}
+                function modifyDes(text) {
+                        const text1 = text.split("//");
+                        var result = "";
+                        for (let i = 1; i < text1.length; i++) {
+                                result = result+"("+(i)+") "+text1[i]+"<br>";
+                        }
+                        return result;
+                }
+		
+	</script>
+							
+</body>
+</html>

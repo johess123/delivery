@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>管理送餐員</title>
+</head>
+<body>
+	<%- include('../function') %>
+	<div class="col py-3">
+	<nav aria-label="breadcrumb">
+		<ol class="breadcrumb">
+		<li class="breadcrumb-item me-2"><img src="/menu.png" width="16" height="16"></li>
+		<li class="breadcrumb-item"><a href="/main">首頁</a></li>
+		<li class="breadcrumb-item"><a href="/delivery">管理送餐員</a></li>
+		<li class="breadcrumb-item active" aria-current="page">新增送餐員資料</li>
+		</ol>
+	</nav>
+	<div class="container mt-5">
+		<div class="row justify-content-center">
+		<div class="col-md-6">
+			<div class="card">
+				<div class="card-header">
+					<strong>新增送餐員資料</strong>
+				</div>
+				<div class="card-body">
+				<form method='post' enctype="multipart/form-data">
+				<div class="row mb-3">
+				  <div class="col-4">
+					<label class="form-label">送餐員帳號</label>
+					<select class="form-select" name="ur_s_num" id="ur_s_num" required></select>
+				  </div>
+				  <div class="col-4">
+				    <label class="form-label">姓</label>
+				    <input type="text" class="form-control" name="dp01" id="dp01" required>
+				  </div>
+				  <div class="col-4">
+					  <label class="form-label">名</label>
+					  <input type="text" class="form-control" name="dp02" id="dp02" required>
+				  </div>
+				</div>
+				<div class="mb-3 col-12">
+					<label class="form-label">綽號</label>
+					<input type="text" class="form-control" name="dp_nickname" id="dp_nickname">
+				</div>
+				<div class="mb-3 col-12">
+					<label class="form-label">加入理由</label>
+					<input type="text" class="form-control" name="dp_reason" id="dp_reason">
+				</div>
+				<div class="mb-3 col-12">
+					<label class="form-label">經驗</label>
+					<input type="text" class="form-control" name="dp_experience" id="dp_experience">
+				</div>
+				<div class="row mb-3">
+				  <div class="col-6">
+					<label class="form-label">圖片</label>
+					<input class="form-control" type="file" name="dp_img" id="dp_img">
+				  </div>
+				  <div class="col-6 d-flex justify-content-center align-items-center">
+					<img id="image" src="" style="display:none width:100px; height:100px;">
+				  </div>
+				</div>
+				<div class="text-center">
+				  <button type="button" class="btn btn-light" onclick="window.location.href='/delivery'">取消</button>
+				  <button type="submit" class="btn btn-primary">新增</button>
+				</div>
+				</form>
+			</div>
+	</div>
+	</div>
+	</div>
+	</div>
+	<%- include('../sos') %>
+	<script src = 'https://cdnjs.cloudflare.com/ajax/libs/axios/0.27.2/axios.min.js' ></script>
+	<script>
+		if (<%= alert1 %> == true) {
+			alert('成功新增送餐員資料！');
+			window.location.href='/delivery';
+		}
+		document.getElementById('dp_img').addEventListener('change', function(event) {
+			var file = event.target.files[0];
+			var imageUrl = URL.createObjectURL(file);
+			var image = document.getElementById('image');
+			image.src = imageUrl;
+			image.style.display = 'block';
+			image.style.width = "100px";
+			image.style.height = "100px";
+		});
+		axios.get('/api/delivery_create')
+			.then(response => {
+				const options = response.data;
+				console.log(options);
+				const select = document.getElementById('ur_s_num');
+				options.forEach(option => {
+					const optionElement = document.createElement('option');
+					optionElement.value = option.s_num;	
+					optionElement.textContent = option.user;
+					select.appendChild(optionElement);
+				});
+		      })
+		      .catch(error => console.log(error));
+	</script>
+</body>
+</html>

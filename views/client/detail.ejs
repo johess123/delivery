@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>管理案主</title>
+</head>
+<body>
+	<%- include('../function') %>
+	<div class="col py-3">
+	<nav aria-label="breadcrumb">
+		<ol class="breadcrumb">
+		<li class="breadcrumb-item me-2"><img src="/menu.png" width="16" height="16"></li>
+		<li class="breadcrumb-item"><a href="/main" class="bread-text">首頁</a></li>
+		<li class="breadcrumb-item"><a href="/client" class="bread-text">管理案主</a></li>
+		<li class="breadcrumb-item active" aria-current="page">詳細案主資料</li>
+		</ol>
+	</nav>
+	<table class="table table-bordered mt-5" id="tab">
+		<thead class="table">
+		<tr><th style="background-color:rgb(11,59,79); color: white">案主編號</th><th style="background-color:rgb(11,59,79); color: white">姓</th><th style="background-color:rgb(11,59,79); color: white">名</th><th style="background-color:rgb(11,59,79); color: white">性別</th><th style="background-color:rgb(11,59,79); color: white">住址</th><th style="background-color:rgb(11,59,79); color: white">案主住址經度</th><th style="background-color:rgb(11,59,79); color: white">案主住址緯度</th><th style="background-color:rgb(11,59,79); color: white">便當類型</th><th style="background-color:rgb(11,59,79); color: white">訂餐時段</th></tr>
+		</thead>
+	</table>
+	<%- include('../sos') %>
+	<script src = 'https://cdnjs.cloudflare.com/ajax/libs/axios/0.27.2/axios.min.js' ></script>
+	<script>
+		const id = '<%= id %>';
+		axios.get(`/api/client/${id}`)
+			.then(response => {
+				let client = response.data;
+				var text = "";
+				text += `<tr><td>${client.s_num}</td><td>${client.ct_lastname}</td><td>${client.ct_name}</td><td>${client.ct_gender}</td><td>${client.ct_address}</td><td>${client.ct_lon}</td><td>${client.ct_lat}</td><td><a href="/bento/detail/${client.bo_s_num}">${client.bo_s_num}</a></td>`
+				if (client.ct_time === 1) {
+					text += "<td>午餐/午晚餐</td>";
+				} else {
+					text += "<td>晚餐</td>";
+				}
+				tab.innerHTML += text;
+			})
+			.catch(error => {
+				console.error(error);
+			});			
+	</script>
+</body>
+</html>

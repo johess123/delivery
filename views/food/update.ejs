@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>管理菜色</title>
+</head>
+<body>	
+	<%- include('../function') %>
+	<div class="col py-3">
+	<nav aria-label="breadcrumb">
+		<ol class="breadcrumb">
+		<li class="breadcrumb-item me-2"><img src="/menu.png" width="16" height="16"></li>
+		<li class="breadcrumb-item"><a href="/main">首頁</a></li>
+		<li class="breadcrumb-item"><a href="/food">管理菜色</a></li>
+		<li class="breadcrumb-item active" aria-current="page">修改菜色資料</li>
+		</ol>
+	</nav>
+	<div class="container mt-5">
+		<div class="row justify-content-center">
+		<div class="col-md-6">
+			<div class="card">
+				<div class="card-header">
+					<strong>修改菜色資料</strong>
+					<button type="button" class="btn btn-primary btn-sm float-end" onclick="addField()">新增描述欄位</button>
+				</div>
+				<div class="card-body">
+				<form id="updateForm">
+				<div class="row mb-3">
+				  <div class="col-6">
+				    <label class="form-label">名稱</label>
+				    <input type="text" class="form-control" name="ds_name" id="ds_name" required>
+				  </div>
+				  <div class="col-6">
+					  <div><label class="form-label">葷素</label></div>
+					  <div class="form-check form-check-inline">
+						  <input class="form-check-input"type="radio" name="food_type" id="food_type" value="葷" checked required>
+						  <label class="form-check-label">葷</label>
+					  </div>
+					  <div class="form-check form-check-inline">
+						  <input class="form-check-input" type="radio" name="food_type" id="food_type" value="素" required>
+						  <label class="form-check-label">素</label>
+					  </div>
+				  </div>
+				</div>
+				<div class="mb-3 col-12">
+					<label class="form-label">價錢</label>
+			 		<input type="number" class="form-control" min="0" max="9999999999" name="price" id="price" required>
+				</div>
+				<div id="newFields"></div>
+				<div class="text-center">
+				  <button type="button" class="btn btn-light" onclick="window.location.href='/food'">取消</button>
+				  <button type="submit" class="btn btn-primary">修改</button>
+				</div>
+				</form>
+			</div>
+	</div>
+	</div>
+	</div>
+	</div>
+	</div>
+	<%- include('../sos') %>
+	<script src = 'https://cdnjs.cloudflare.com/ajax/libs/axios/0.27.2/axios.min.js' ></script>
+	<script>
+		// 先取得原本資料
+		const id = '<%= id %>';
+		const form = document.getElementById('updateForm');
+		let fieldCounter = 1;
+		let fieldNum = 1;
+		axios.get(`/api/food/${id}`)
+			.then(response => {
+				form.ds_name.value = response.data.ds_name;
+				text = response.data.description.split("//");
+				form.food_type.value = text[0];
+				for (let i = 1; i < text.length; i++) {
+					const newFields = document.getElementById("newFields");
+					// 新增一個欄位		
+					var newDiv = document.createElement('div');
+					newDiv.id = `field${fieldCounter}`;
+					newDiv.className = 'mb-3 col-12';
+					var newLabel = document.createElement('label');
+					newLabel.id = `des${fieldCounter}`;
+					newLabel.className = 'form-label';
+					newLabel.textContent = `描述${fieldNum}`;
+					var newDiv1 = document.createElement('div');
+					newDiv1.className = 'input-group';
+					var newInput = document.createElement('input');
+					newInput.type = 'text';
+					newInput.className = 'form-control';
+					newInput.name = `description${fieldCounter}`;
+					newInput.required = true;
+					newInput.value = text[i]
+					var deleteButton = document.createElement('button');
+					deleteButton.type = 'button';
+					deleteButton.className = 'ms-2 btn btn-danger';
+					deleteButton.textContent = '刪除';
+					const now_id = fieldCounter;
+					deleteButton.onclick = function() {
+						removeField(now_id);
+					};
+					newDiv1.appendChild(newInput);
+					newDiv1.appendChild(deleteButton);
+					newDiv.appendChild(newLabel);
+					newDiv.appendChild(newDiv1);
+					newFields.appendChild(newDiv);
+					fieldCounter++;
+					fieldNum++;
+				}
+				form.price.value = response.data.price;
+			})
+			.catch(error => {
+				console.error(error);
+			});
+		function addField() {
+			const newFields = document.getElementById("newFields");
+			// 新增一個欄位	
+			var newDiv = document.createElement('div');
+			newDiv.id = `field${fieldCounter}`;
+			newDiv.className = 'mb-3 col-12';
+			var newLabel = document.createElement('label');
+			newLabel.id = `des${fieldCounter}`;
+			newLabel.className = 'form-label';
+			newLabel.textContent = `描述${fieldNum}`;
+			var newDiv1 = document.createElement('div');
+			newDiv1.className = 'input-group';
+			var newInput = document.createElement('input');
+			newInput.type = 'text';
+			newInput.className = 'form-control';
+			newInput.name = `description${fieldCounter}`;
+			newInput.required = true;
+			var deleteButton = document.createElement('button');
+			deleteButton.type = 'button';
+			deleteButton.className = 'ms-2 btn btn-danger';
+			deleteButton.textContent = '刪除';
+			const now_id = fieldCounter;
+			deleteButton.onclick = function() {
+				removeField(now_id);
+			};
+			newDiv1.appendChild(newInput);
+			newDiv1.appendChild(deleteButton);
+			newDiv.appendChild(newLabel);
+			newDiv.appendChild(newDiv1);
+			newFields.appendChild(newDiv);
+			fieldCounter++;
+			fieldNum++;
+		};
+		function removeField(id) {
+			fieldNum -= 1;
+			document.getElementById("field"+id).remove();
+			var desInput = document.getElementsByTagName("label");
+			new_id = 1;
+			for (let i = 0; i < desInput.length; i++) {
+				var desId = desInput[i].getAttribute("id");
+				if (desId && desId.startsWith("des")) {
+					desInput[i].textContent = `描述${new_id}`;
+					new_id++;
+				}
+			}
+		}
+		document.getElementById("updateForm").addEventListener("submit", function(event) {
+			event.preventDefault(); // 防止送出後頁面刷新
+			
+			const formData = new FormData(document.getElementById("updateForm"));
+			// 將新增的欄位資料加入 FormData 物件
+			const newFields = document.getElementById("newFields");
+			const newInputs = newFields.querySelectorAll('input');
+			newInputs.forEach(input => {
+				formData.append(input.name, input.value);
+			});
+
+			const jsonData = {};
+			formData.forEach((value, key) => {
+				jsonData[key] = value;
+			});
+
+			axios.put(`/food/update/${id}`, jsonData)
+				.then(response => {
+					alert('成功修改菜色資料！');
+					window.location.href='/food';
+				})
+				.catch(error => {
+					console.error(error);
+				});
+		});
+	</script>
+</body>
+</html>

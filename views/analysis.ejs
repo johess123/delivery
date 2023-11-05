@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>停留時間分析</title>
+</head>
+<body>
+	<%- include('function') %>
+	<div class="col py-3">
+	<nav aria-label="breadcrumb">
+		<ol class="breadcrumb">
+		<li class="breadcrumb-item me-2"><img src="/menu.png" width="16" height="16"></li>
+		<li class="breadcrumb-item"><a href="/main" class="bread-text">首頁</a></li>
+		<li class="breadcrumb-item active" aria-current="page">停留時間分析</li>
+		</ol>
+	</nav>
+	<button type="button" class="btn btn5" onclick="month()">匯出上月報表</button>
+	<form id="searchForm" method="GET">
+	<div class="row mt-5">
+		<div class="col-lg-2">
+			<input type="text" id="reh_s_num" name="reh_s_num" class="form-control" placeholder="路線編號">
+		</div>
+		<div class="col-lg-2">
+			<input type="text" id="dp_s_num" name="dp_s_num" class="form-control" placeholder="送餐員編號">
+		</div>
+		<div class="col-lg-2">
+			<input type="date" id="ph_time" name="ph_time" class="form-control" placeholder="簽到時間">
+		</div>
+		<div class="col-lg-2">
+			<input type="text" id="analysis_num" name="analysis_num" class="form-control" placeholder="分析結果">
+		</div>
+		<div class="col-lg-3">
+			<button type="submit" class="btn btn4">
+				<img src="/search.png" width="16">
+				<span>查詢</span>
+			</button>
+			<button type="button" class="btn btn5" onclick="window.location.href='/analysis'">
+				<span>重置</span>
+			</button>
+		</div>
+	</div>
+	<div id="tab" class="mt-4">
+		<table class="table table-bordered" id="tab1">
+		</table>
+	</div>
+	<div id="tab2" class="d-flex justify-content-end"></div>
+	</div>
+	</div>
+	</div>
+	<%- include('sos') %>
+	<script src = 'https://cdnjs.cloudflare.com/ajax/libs/axios/0.27.2/axios.min.js' ></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+	<script>
+		var tb1 = document.getElementById('tab1');
+		const tab1_th = '<thead><tr class="align-middle"><th scope="col" style="background-color:rgb(11,59,79);color:white">No.</th><th scope="col" style="background-color:rgb(11,59,79);color:white">路線編號</th><th scope="col" style="background-color:rgb(11,59,79);color:white">送餐員編號</th><th scope="col" style="background-color:rgb(11,59,79);color:white">簽到時間</th><th scope="col" style="background-color:rgb(11,59,79);color:white">分析結果</th></tr>';
+		var reh_s_num;
+		var dp_s_num;
+		var ph_time;
+		var analysis;
+		var search_analysis;
+		var on_search = false;
+		var page = 1;
+		var page_display = 5;
+		var total_page;
+		function pagination(pos,now_page) {
+			if (pos === "one") {
+	       			return `<nav aria-label="Page navigation example">
+			  	<ul class="pagination">
+			    	<li class="page-item active"><a class="page-link">1</a></li>
+			  	</ul>
+				</nav>`;
+			} else if (pos === "first") {
+				return `<nav aria-label="Page navigation example">
+			  	<ul class="pagination">
+	       		    	<li class="page-item active"><a class="page-link">${now_page}</a></li>
+			    	<li class="page-item">
+			      	<a class="page-link" href="#" aria-label="Next" onclick="next()">
+			        <span aria-hidden="true">&raquo;</span>
+			      	</a>
+			    	</li>
+			  	</ul>
+				</nav>`;
+			} else if (pos === "center") {
+				return `<nav aria-label="Page navigation example">
+			  	<ul class="pagination">
+				<li class="page-item">
+				<a class="page-link" href="#" aria-label="Previous" onclick="prev()">
+			        <span aria-hidden="true">&laquo;</span>
+			      	</a>
+			    	</li>
+	       		    	<li class="page-item active"><a class="page-link">${now_page}</a></li>
+			    	<li class="page-item">
+			      	<a class="page-link" href="#" aria-label="Next" onclick="next()">
+			        <span aria-hidden="true">&raquo;</span>
+			      	</a>
+			    	</li>
+			  	</ul>
+				</nav>`;
+			} else {
+				return `<nav aria-label="Page navigation example">
+			  	<ul class="pagination">
+			    	<li class="page-item">
+			      	<a class="page-link" href="#" aria-label="Previous" onclick="prev()">
+			        <span aria-hidden="true">&laquo;</span>
+			      	</a>
+			    	</li>
+	       		  	<li class="page-item active"><a class="page-link">${now_page}</a></li>
+			  	</ul>
+				</nav>`;
+			}
+		};
+		// 取得意見回饋
+		axios.get('/api/analysis')
+			.then(response => {
+				tab1.innerHTML = tab1_th;
+				analysis = response.data;
+				console.log(analysis)
+				for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+					if (i < analysis.length) {
+						tab1.innerHTML += get_tb1_tb(analysis,i);
+					}
+				}
+				total_page = Math.ceil(analysis.length/page_display);
+				if (page < total_page) {
+					tab2.innerHTML = pagination('first',page);
+				} else {
+					tab2.innerHTML = pagination('one',1);
+				}
+			})
+			.catch(error => {
+				console.error(error);
+			});
+		function get_tb1_tb(analysis,i) {
+			var text = `<tr id=tr${i%10+1}><td>${i+1}</td><td>${analysis[i].reh_s_num}</td><td>${analysis[i].dp_s_num}</td><td>${analysis[i].ph_time}</td>`
+			if (analysis[i].analysis_num == 1) {
+				text += "<td>A狀況</td></tr>";
+			} else {
+				text += "<td>B狀況</td></tr>";
+			}
+			return text;
+		}
+		function next() {
+			tab1.innerHTML = tab1_th;
+			page += 1
+			for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+				if (on_search == false) {
+					if (i < analysis.length) {
+						tab1.innerHTML += get_tb1_tb(analysis,i);
+					}
+				} else {
+					if (i < search_analysis.length) {
+						tab1.innerHTML += get_tb1_tb(search_analysis,i);
+					}
+				}
+			}
+			if (page < total_page) {
+				tab2.innerHTML = pagination("center",page);
+			} else {
+				tab2.innerHTML = pagination("last",page);
+			}
+		}
+		function last() {
+			tab1.innerHTML = tab1_th;
+			page = total_page;
+			for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+				if (on_search == false) {
+					if (i < analysis.length) {
+						tab1.innerHTML += get_tb1_tb(analysis,i);
+					}
+				} else {
+					if (i < search_analysis.length) {
+						tab1.innerHTML += get_tb1_tb(search_analysis,i);
+					}
+				}
+			}
+			tab2.innerHTML = pagination("last",page);
+		}
+		function first() {
+			tab1.innerHTML = tab1_th;
+			page = 1;
+			for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+				if (on_search == false) {
+					if (i < analysis.length) {
+						tab1.innerHTML += get_tb1_tb(analysis,i);
+					}
+				} else {
+					if (i < search_analysis.length) {
+						tab1.innerHTML += get_tb1_tb(search_analysis,i);
+					}
+				}
+			}
+			tab2.innerHTML = pagination("first",page);
+		}
+		function prev() {
+			tab1.innerHTML = tab1_th;
+			page -= 1
+			for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+				if (on_search == false) {
+					if (i < analysis.length) {
+						tab1.innerHTML += get_tb1_tb(analysis,i);
+					}	
+				} else {
+					if (i < search_analysis.length) {
+						tab1.innerHTML += get_tb1_tb(search_analysis,i);
+					}
+				}
+			}
+			if (page > 1) {
+				tab2.innerHTML = pagination("center",page);
+			} else {
+				tab2.innerHTML = pagination("first",page);
+			}
+		}
+		document.getElementById("searchForm").addEventListener('submit', function(event) {
+			event.preventDefault(); // 防止送出後頁面刷新
+			on_search = true;
+			reh_s_num = document.getElementById("searchForm").querySelectorAll('input')[0].value;
+			dp_s_num = document.getElementById("searchForm").querySelectorAll('input')[1].value;
+			ph_time = document.getElementById("searchForm").querySelectorAll('input')[2].value;
+			analysis_num = document.getElementById("searchForm").querySelectorAll('input')[3].value;
+			console.log(analysis_num);
+			search_analysis = analysis;
+			if (reh_s_num !== "") {
+				search_analysis = search_analysis.filter(this_analysis => this_analysis.reh_s_num.toString().startsWith(reh_s_num));
+			}
+			if (dp_s_num !== "") {
+				search_analysis = search_analysis.filter(this_analysis => this_analysis.dp_s_num.toString().startsWith(dp_s_num));
+			}
+			if (ph_time !== "") {
+				search_analysis = search_analysis.filter(this_analysis => this_analysis.ph_time.startsWith(ph_time));
+			}
+			if (analysis_num !== "") {
+				console.log(123)
+				search_analysis = search_analysis.filter(this_analysis => this_analysis.analysis_num == analysis_num);
+			}
+			console.log(search_analysis);
+			tab1.innerHTML = tab1_th;
+			if (search_analysis.length == 0) {
+				tab1.innerHTML = '<h3>查無停留時間分析紀錄！</h3>';
+				tab2.innerHTML = "";
+			} else {
+				page = 1;
+				for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+					if (i < search_analysis.length) {
+						tab1.innerHTML += get_tb1_tb(search_analysis,i)
+					}
+				}
+				total_page = Math.ceil(search_analysis.length/page_display);
+				if (page < total_page) {
+					tab2.innerHTML = pagination("first",page);
+				} else {
+					tab2.innerHTML = pagination("one",1);
+				}
+			}
+		})
+		function month() {
+			axios.get('/analysis/month')
+				.then(response => {
+					if (response.data.length == 0) {
+						alert('上月報表尚未建立，無法匯出！');
+					} else {
+						monthlyExcel(response.data);
+						alert('匯出成功！');
+					}
+				})
+				.catch(error => {
+					console.error(error);
+				});
+		}
+		function createWorkbook(data) { // 建立工作簿
+			const workbook = XLSX.utils.book_new();
+			const datas = [["編號","路線編號","送餐員編號","簽到時間","分析結果"]];
+			for (let i = 0; i < data.length; i++) {
+				var this_data;
+				if (data[i].analysis_num == 1) {
+					this_data = [i+1,data[i].reh_s_num,data[i].dp_s_num,data[i].ph_time,"A狀況"];
+				} else {
+					this_data = [i+1,data[i].reh_s_num,data[i].dp_s_num,data[i].ph_time,"B狀況"];
+				}
+				datas.push(this_data);
+			}
+			const sheet = XLSX.utils.aoa_to_sheet(datas);
+			XLSX.utils.book_append_sheet(workbook, sheet, "Sheet1");
+			return workbook;
+		}
+		function monthlyExcel(data) { // 匯出月報表excel
+			const workbook = createWorkbook(data);
+			const today = new Date();
+			const filename = `${today.getFullYear()}-${today.getMonth()}_月停留時間分析.xlsx`;
+			XLSX.writeFile(workbook, filename);
+		}
+	</script>
+</body>
+</html>

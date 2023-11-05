@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>管理便當</title>
+</head>
+<body>	
+	<%- include('../function') %>
+	<div class="col py-3">
+	<nav aria-label="breadcrumb">
+		<ol class="breadcrumb">
+		<li class="breadcrumb-item me-2"><img src="/menu.png" width="16" height="16"></li>
+		<li class="breadcrumb-item"><a href="/main">首頁</a></li>
+		<li class="breadcrumb-item"><a href="/bento">管理便當</a></li>
+		<li class="breadcrumb-item active" aria-current="page">修改便當資料</li>
+		</ol>
+	</nav>
+	<div class="container mt-5">
+		<div class="row justify-content-center">
+		<div class="col-md-6">
+			<div class="card">
+				<div class="card-header">
+					<strong>修改便當資料</strong>
+					<button type="button" class="btn btn-primary btn-sm float-end" onclick="addField()">新增便當欄位</button>
+				</div>
+				<div class="card-body">
+				<form id="updateForm">
+				<div class="mb-3 col-12">
+					<label class="form-label">名稱</label>
+					<input type="text" class="form-control" name="bo_name" id="bo_name" required>
+				</div>
+				<div id="newFields"></div>
+				<div class="text-center">
+					<button type="button" class="btn btn-light" onclick="window.location.href='/bento'">取消</button>
+					<button type="submit" class="btn btn-primary">修改</button>
+				</div>
+				</form>
+			</div>
+	</div>
+	</div>
+	</div>
+	</div>
+	</div>
+	</form>
+	<%- include('../sos') %>
+	<script src = 'https://cdnjs.cloudflare.com/ajax/libs/axios/0.27.2/axios.min.js' ></script>
+	<script>
+		// 先取得原本資料
+		const id = '<%= id %>';
+		const form = document.getElementById('updateForm');
+		let fieldCounter = 1;
+		var new_id = 1;
+		var options;
+		var select_num = 0;
+		var check_num = 0;
+		var check_array = [];
+		var initial_value;
+		axios.get(`/api/bento/${id}`)
+			.then(response1 => { // 該便當的資料
+				form.bo_name.value = response1.data[0].bo_name;
+				axios.get('/api/bento_create') // 所有菜色
+					.then(response2 => {
+						options = response2.data;
+						const newFields = document.getElementById("newFields");
+						var select;
+						var optionElement;
+						for (let i = 0; i < response1.data.length; i++) {
+							// 新增一個欄位
+							var newDiv = document.createElement('div');
+							newDiv.id = `select${fieldCounter}`;
+							newDiv.className = 'mb-3 col-12';
+							var newLabel = document.createElement('label');
+							newLabel.id = `food_name${fieldCounter}`;
+							newLabel.textContent = `菜色${new_id}`;
+							newLabel.className = "form-label";
+							var newDiv1 = document.createElement('div');
+							newDiv1.className = 'input-group';
+							var newSelect = document.createElement('select');
+							options.forEach(option => {
+								const optionElement = document.createElement('option');
+								optionElement.value = option.s_num;
+								optionElement.textContent = option.ds_name;
+								newSelect.appendChild(optionElement);
+							});
+							newSelect.id = `food${fieldCounter}`;
+							newSelect.name = `food${fieldCounter}`;
+							newSelect.className = "form-select";
+							newSelect.required = true;
+							var checkButton = document.createElement('button');
+							checkButton.type = 'button';
+							checkButton.className = 'ms-2 btn btn-light';
+							checkButton.textContent = '確認';
+							const now_id = fieldCounter;
+							checkButton.onclick = function() {
+								check(now_id);
+							};
+							var deleteButton = document.createElement('button');
+							deleteButton.type = 'button';
+							deleteButton.className = 'ms-2 btn btn-danger';
+							deleteButton.textContent = '刪除';
+							deleteButton.onclick = function() {
+								deleteField(now_id);
+							};
+							newDiv1.appendChild(newSelect);
+							newDiv1.appendChild(checkButton);
+							newDiv1.appendChild(deleteButton);
+							newDiv.appendChild(newLabel);
+							newDiv.appendChild(newDiv1);
+							newFields.appendChild(newDiv);
+							check_array.push(true);
+							fieldCounter++;
+							select_num += 1;
+							new_id++;
+						}
+						fieldCounter = 1;
+						for (let i = 0; i < response1.data.length; i++) {
+							const initial_value = response1.data[i].ds_s_num;
+							select = document.getElementById(`food${fieldCounter}`);
+							select.value = initial_value;
+							check_array.push(true);
+							fieldCounter++;
+						}
+					})
+			})
+			.catch(error => {
+				console.error(error);
+			});
+		function addField() {
+			console.log(new_id);
+			if (options.length >= 1 && select_num-check_num < options.length) {
+				select_num += 1;
+				const newFields = document.getElementById("newFields");
+				// 新增一個欄位
+				const select = document.createElement('select');
+				// 設定select欄位選項	
+				var newDiv = document.createElement('div');
+				newDiv.id = `select${fieldCounter}`;
+				newDiv.className = 'mb-3 col-12';
+				var newLabel = document.createElement('label');
+				newLabel.id = `food_name${fieldCounter}`;
+				newLabel.textContent = `菜色${new_id}`;
+				newLabel.className = "form-label";
+				var newDiv1 = document.createElement('div');
+				newDiv1.className = 'input-group';
+				var newSelect = document.createElement('select');
+				options.forEach(option => {
+					const optionElement = document.createElement('option');
+					optionElement.value = option.s_num;
+					optionElement.textContent = option.ds_name;
+					newSelect.appendChild(optionElement);
+				});
+				newSelect.id = `food${fieldCounter}`;
+				newSelect.name = `food${fieldCounter}`;
+				newSelect.className = "form-select";
+				newSelect.required = true;
+				var checkButton = document.createElement('button');
+				checkButton.type = 'button';
+				checkButton.className = 'ms-2 btn btn-light';
+				checkButton.textContent = '確認';
+				const now_id = fieldCounter;
+				checkButton.onclick = function() {
+					check(now_id);
+				};
+				var deleteButton = document.createElement('button');
+				deleteButton.type = 'button';
+				deleteButton.className = 'ms-2 btn btn-danger';
+				deleteButton.textContent = '刪除';
+				deleteButton.onclick = function() {
+					deleteField(now_id);
+				};
+				newDiv1.appendChild(newSelect);
+				newDiv1.appendChild(checkButton);
+				newDiv1.appendChild(deleteButton);
+				newDiv.appendChild(newLabel);
+				newDiv.appendChild(newDiv1);
+				newFields.appendChild(newDiv);
+				check_array.push(true);
+				check_array.push(true);
+				fieldCounter++;
+				new_id++;
+			} else {
+				alert('欄位數已達上限，無法再增加');
+			}
+		};
+		function deleteField(select_id) { // 刪除欄位
+			if (check_array[select_id-1] == false) {
+				alert('此欄位已確認，無法刪除！');
+			} else if (select_num == 1) {
+				alert('至少要有一項菜色，因此無法刪除！');
+			} else {
+				select_num -= 1;
+				document.getElementById("select"+select_id).remove()
+				deleteName();
+			}
+		}
+		function deleteName() { // 刪除欄位改編號
+			var foodInput = document.getElementsByTagName("label");
+			new_id = 1;
+			for (let i = 0; i < foodInput.length; i++) {
+				var foodId = foodInput[i].getAttribute("id");
+				if (foodId && foodId.startsWith("food_name")) {
+					foodInput[i].textContent = `菜色${new_id}`;
+					new_id++;
+				}
+			}
+		}
+		function check(select_id) {
+			if (check_array[select_id-1] == true) {
+				check_array[select_id-1] = false;
+				check_num += 1;
+				//select_num -= 1;
+				const select = document.getElementById("food"+select_id);
+				select.disabled = true;
+				select.readOnly = true;
+				const select_value = select.value;
+				const allSelect = document.getElementsByTagName("select");
+				var index;
+				for (let i = 0; i < options.length; i++) {
+					if (options[i].s_num == select.value) {
+						index = i;
+					}
+				}
+				options.splice(index,1);
+				for (let i = 0; i < allSelect.length; i++) {
+					if (allSelect[i] !== select) {
+						for(let j = 0; j < allSelect[i].options.length; j++) {
+							if (allSelect[i].options[j].value === select_value) {
+								allSelect[i].options[j].remove();
+							}
+						}
+					}
+				}
+			}
+		};
+		document.getElementById("updateForm").addEventListener("submit", function(event) {
+			event.preventDefault(); // 防止送出後頁面刷新
+			const newInputs = document.querySelectorAll('select');
+			var all_check = true;
+			for (let i = 0; i < newInputs.length; i++) {
+				if (newInputs[i].disabled == false) {
+					all_check = false;
+				}
+			}
+			if (all_check == false) {
+				alert('請確認全部選項再送出！');
+			} else {
+				const jsonData = {};
+				newInputs.forEach(input => {
+					jsonData[input.name] = input.value;
+				});
+				jsonData["bo_name"] = document.getElementById("updateForm").elements['bo_name'].value;
+				axios.put(`/bento/update/${id}`, jsonData)
+					.then(response => {
+						alert('成功修改便當資料！');
+						window.location.href='/bento';
+					})
+					.catch(error => {
+						console.error(error);
+					});
+			}
+		});
+	</script>
+</body>
+</html>

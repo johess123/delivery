@@ -1,0 +1,136 @@
+<style>
+  #chatButton {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 60px;
+    border: none;
+    background: none;
+    z-index: 2;
+  }
+  #chatButtonImg {
+    width: 60px;
+  }
+  #chatContainer {
+    display: none;
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 20px;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    max-width: 500px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    width: 500px;
+    height: 300px;
+    z-index: 2:
+  }
+  #chatHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+  }
+  #chatMessages {
+    max-height: 200px;
+    height: 200px;
+    overflow-y: scroll;
+    padding: 5px;
+    font-size: 14px;
+    z-index: 2;
+  }
+  #closeChatButton {
+    height: 25px;
+  }
+</style>
+<button id="chatButton">
+<img id="chatButtonImg" src="/phone.png" alt="圖片按鈕" title="檢視通報">
+</button>
+<div id="chatContainer">
+  <div id="chatHeader">
+    <strong>緊急狀況</strong>
+    <img id="closeChatButton" src="/remove.png" alt="關閉" title="關閉">
+  </div>
+  <div id="chatMessages">
+	<table class="table" id="chatTable">
+		<thead class="table-light">
+			<tr><th>送餐員</th><th>地點</th><th>通報時間</th><th>類型</th><th>刪除</th></tr>
+		</thead>
+	</table>
+  </div>
+  <div id="chat_button">
+    <button class="btn btn-outline-primary ml-3" onclick="clearMessage()">清空</button>
+  </div>
+</div>
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+<script>
+	var mqtt_count = 0;
+	var get_new = false;
+	var mqtt_client = mqtt.connect("ws://163.22.17.184:9001");
+	mqtt_client.on('connect', function() {
+		mqtt_client.subscribe("emergency",function(err,granted) {
+			if (err) {	
+				console.log(err);
+			}
+		})
+		mqtt_client.on("message", function (topic, payload) {
+			get_new = true;
+			const message = new TextDecoder().decode(payload).split(",");
+			const chatTable = document.getElementById('chatTable');
+			mqtt_count += 1;
+			const lat = message[0]; // 緯度
+			const lon = message[1]; // 經度
+			const sos_type = message[3]; // 警報類型
+			var time = new Date();
+			var year = time.getFullYear();
+			var month = time.getMonth()+1;
+			var day = time.getDate();
+			var hour = time.getHours();
+			var minute = time.getMinutes();
+			var second = time.getSeconds();
+			time = year+"/"+month+"/"+day+" "+hour+":"+minute+":"+second; // 通報時間
+			const tr_id = mqtt_count;
+			chatTable.innerHTML += `<tr id="sos_tr${tr_id}"><td>${message[2]}</td><td><a href='https://www.google.com/maps/place/${lat},${lon}' target="_blank"><img src="map.png" title="開啟地圖" style="height: 20px"></a></td><td>${time}</td><td>${sos_type}</td><td><img src="/cancel.png" style="height: 20px" title="刪除" onclick="deleteMessage(${tr_id})"></td></tr>`;
+			var audio = new Audio('sound.mp3');
+			audio.play();
+		});
+	});
+	const chatButton = document.getElementById('chatButton');
+	const chatContainer = document.getElementById('chatContainer');
+	const closeChatButton = document.getElementById('closeChatButton');
+	const chatMessages = document.getElementById('chatMessages');
+
+	chatButton.addEventListener('click', () => {
+		chatButton.style.right= '20px';
+		chatButton.src = "phone.png";
+		chatButton.style.display = 'none';
+		chatContainer.style.display = 'block';
+		get_new = false;
+	});
+
+	closeChatButton.addEventListener('click', () => {
+		chatButton.style.display = 'block';
+		chatContainer.style.display = 'none';
+	});
+	
+	function checkNew() {
+		const phone_img = document.getElementById('chatButtonImg');
+		if (get_new === true) {
+			phone_img.src = "/sos.png";
+			chatButton.style.right= '30px';
+		} else {
+			phone_img.src = "/phone.png";
+		}
+	};
+	const intervalId = setInterval(checkNew, 1000);
+	function deleteMessage(id) {
+		const tr_message = document.getElementById(`sos_tr${id}`);
+		tr_message.innerHTML = "";
+	}	
+	function clearMessage() {
+		const chatTable = document.getElementById('chatTable');
+		chatTable.innerHTML = '<thead class="table-light"><tr><th>送餐員</th><th>地點</th><th>通報時間</th><th>類型</th><th>刪除</th></tr></thead>';
+	}
+</script>

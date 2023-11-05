@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>管理案主</title>
+</head>
+<body>
+	<%- include('../function') %>
+	
+	<div class="col py-3">
+	<nav aria-label="breadcrumb">
+		<ol class="breadcrumb">
+		<li class="breadcrumb-item me-2"><img src="/menu.png" width="16" height="16"></li>
+		<li class="breadcrumb-item"><a href="/main" class="bread-text">首頁</a></li>
+		<li class="breadcrumb-item active" aria-current="page">管理案主</li>
+		</ol>
+	</nav>
+	<form id="searchForm" method="GET">
+	<div class="row mt-5">
+		<div class="col-lg-2">
+			<input type="text" id="id" name="id" class="form-control" placeholder="案主編號">
+		</div>
+		<div class="col-lg-2">
+			<input type="text" id="lastname" name="lastname" class="form-control" placeholder="姓">
+		</div>
+		<div class="col-lg-2">
+			<input type="text" id="name" name="name" class="form-control" placeholder="名">
+		</div>
+		<div class="col-lg-3">
+			<button type="submit" class="btn btn4">
+				<img src="/search.png" width="16">
+				<span>查詢</span>
+			</button>
+			<button type="button" class="btn btn5" onclick="window.location.href='/client'">
+				<span>重置</span>
+			</button>
+			<button type="button" class="btn btn6" onclick="window.location.href='/client/create'">+ 新增案主</button>
+		</div>
+	</div>
+	</form>
+	<div id="tab" class="mt-4">
+		<table class="table table-bordered" id="tab1">
+		</table>
+	</div>
+	<div id="tab2" class="d-flex justify-content-end"></div>
+	</div>
+	</div>
+	</div>
+	<div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header" style="background-color: rgb(11,59,79)">
+	    <h5 class="modal-title" style="color: white" id="exampleModalLabel"><b>詳細案主資料</b></h5>
+	    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table" id="detail_tab"></table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+	<%- include('../sos') %>
+	<script src = 'https://cdnjs.cloudflare.com/ajax/libs/axios/0.27.2/axios.min.js' ></script>
+	<script>
+		var tab1 = document.getElementById('tab1');
+		const tab1_th = '<thead><tr id=tr_th><th scope="col" style="background-color:rgb(11,59,79);color:white">No.</th><th scope="col" style="background-color:rgb(11,59,79);color:white">案主編號</th><th scope="col" style="background-color:rgb(11,59,79);color:white">姓</th><th scope="col" style="background-color:rgb(11,59,79);color:white">名</th><th scope="col" style="background-color:rgb(11,59,79);color:white">其他功能</th></tr></thead>';
+		var id; // 搜尋id
+		var lastname; // 搜尋姓
+		var name; // 搜尋名
+		var client;
+		var search_client;
+		var on_search = false; // 是否在搜尋狀態 
+		var page = 1; // 目前頁數
+		var page_display = 5; // 一頁顯示幾筆
+		var total_page; // 總共幾頁
+		function pagination(pos,now_page) {
+			if (pos === "one") {
+	       			return `<nav aria-label="Page navigation example">
+			  	<ul class="pagination">
+			    	<li class="page-item active"><a class="page-link">1</a></li>
+			  	</ul>
+				</nav>`;
+			} else if (pos === "first") {
+				return `<nav aria-label="Page navigation example">
+			  	<ul class="pagination">
+	       		    	<li class="page-item active"><a class="page-link">${now_page}</a></li>
+			    	<li class="page-item">
+			      	<a class="page-link" href="#" aria-label="Next" onclick="next()">
+			        <span aria-hidden="true">&raquo;</span>
+			      	</a>
+			    	</li>
+			  	</ul>
+				</nav>`;
+			} else if (pos === "center") {
+				return `<nav aria-label="Page navigation example">
+			  	<ul class="pagination">
+				<li class="page-item">
+				<a class="page-link" href="#" aria-label="Previous" onclick="prev()">
+			        <span aria-hidden="true">&laquo;</span>
+			      	</a>
+			    	</li>
+	       		    	<li class="page-item active"><a class="page-link">${now_page}</a></li>
+			    	<li class="page-item">
+			      	<a class="page-link" href="#" aria-label="Next" onclick="next()">
+			        <span aria-hidden="true">&raquo;</span>
+			      	</a>
+			    	</li>
+			  	</ul>
+				</nav>`;
+			} else {
+				return `<nav aria-label="Page navigation example">
+			  	<ul class="pagination">
+			    	<li class="page-item">
+			      	<a class="page-link" href="#" aria-label="Previous" onclick="prev()">
+			        <span aria-hidden="true">&laquo;</span>
+			      	</a>
+			    	</li>
+	       		  	<li class="page-item active"><a class="page-link">${now_page}</a></li>
+			  	</ul>
+				</nav>`;
+			}
+		};
+		getClient();
+		// 取得案主資料
+		function getClient() {
+			axios.get('/api/client')
+				.then(response => {
+					tab1.innerHTML = tab1_th;
+					client = response.data;
+					for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+						if (i < client.length) {
+							tab1.innerHTML += get_tb1_tb(client,i,false);
+						}
+					}
+					total_page = Math.ceil(client.length/page_display);
+					if (page < total_page) {
+						tab2.innerHTML = pagination('first',page);
+					} else {
+						tab2.innerHTML = pagination('one',1);
+					}
+				})
+				.catch(error => {
+					console.error(error);
+				});
+		}
+		function get_tb1_tb(client,i) {
+			return `<tr id=tr${i%10+1}><td>${i+1}</td><td>${client[i].s_num}</td><td>${client[i].ct_lastname}</td><td>${client[i].ct_name}</td><td><button type="button" class="btn btn1 mx-1" data-bs-toggle="modal" data-bs-target="#detailModal" onclick="show_detail(${client[i].s_num})">詳細</button><button type="button" class="btn btn2 mx-1" onclick="window.location.href='/client/update/${client[i].s_num}'">修改</button><button type="button" class="btn btn3 mx-1" onclick="deleteClient(${client[i].s_num})">刪除</button></td></tr>`
+		}
+		function prev() {
+			tab1.innerHTML = tab1_th;
+			page -= 1
+			for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+				if (on_search == false) {
+					if (i < client.length) {
+						tab1.innerHTML += get_tb1_tb(client,i);
+					}	
+				} else {
+					if (i < search_client.length) {
+						tab1.innerHTML += get_tb1_tb(search_client,i);
+					}
+				}
+			}
+			if (page > 1) {
+				tab2.innerHTML = pagination("center",page);
+			} else {
+				tab2.innerHTML = pagination("first",page);
+			}
+		}
+		function next() {
+			tab1.innerHTML = tab1_th;
+			page += 1
+			for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+				if (on_search == false) {
+					if (i < client.length) {
+						tab1.innerHTML += get_tb1_tb(client,i);
+					}
+				} else {
+					if (i < search_client.length) {
+						tab1.innerHTML += get_tb1_tb(search_client,i);
+					}
+				}
+			}
+			if (page < total_page) {
+				tab2.innerHTML = pagination("center",page);
+			} else {
+				tab2.innerHTML = pagination("last",page);
+			}
+		}
+		function last() {
+			tab1.innerHTML = tab1_th;
+			page = total_page;
+			for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+				if (on_search == false) {
+					if (i < client.length) {
+						tab1.innerHTML += get_tb1_tb(client,i);
+					}
+				} else {
+					if (i < search_client.length) {
+						tab1.innerHTML += get_tb1_tb(search_client,i);
+					}
+				}
+			}
+			tab2.innerHTML = pagination("last",page);
+		}
+		function first() {
+			tab1.innerHTML = tab1_th;
+			page = 1;
+			for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+				if (on_search == false) {
+					if (i < client.length) {
+						tab1.innerHTML += get_tb1_tb(client,i);
+					}
+				} else {
+					if (i < search_client.length) {
+						tab1.innerHTML += get_tb1_tb(search_client,i);
+					}
+				}
+			}
+			tab2.innerHTML = pagination("first",page);
+		}
+		document.getElementById("searchForm").addEventListener('submit', function(event) {
+			event.preventDefault(); // 防止送出後頁面刷新
+			on_search = true;
+			id = document.getElementById("searchForm").querySelectorAll('input')[0].value;
+			lastname = document.getElementById("searchForm").querySelectorAll('input')[1].value;
+			name = document.getElementById("searchForm").querySelectorAll('input')[2].value;
+			search_client = client;
+			if (id !== "") {
+				search_client = search_client.filter(this_client => this_client.s_num.toString().startsWith(id));
+			}
+			if (lastname !== "") {
+				search_client = search_client.filter(this_client => this_client.ct_lastname.startsWith(lastname));
+			}
+			if (name !== "") {
+				search_client = search_client.filter(this_client => this_client.ct_name.startsWith(name));
+			}
+			tab1.innerHTML = tab1_th;
+			if (search_client.length == 0) {
+				tab1.innerHTML = '<h3>查無該案主！</h3>';
+				tab2.innerHTML = "";
+			} else {
+				page = 1;
+				for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+					if (i < search_client.length) {
+						tab1.innerHTML += get_tb1_tb(search_client,i)
+					}
+				}
+				total_page = Math.ceil(search_client.length/page_display);
+				if (page < total_page) {
+					tab2.innerHTML = pagination("first",page);
+				} else {
+					tab2.innerHTML = pagination("one",1);
+				}
+			}
+
+		});
+		function deleteClient(id) {
+			const {suc : t} = axios.delete(`/client/delete/${id}`)
+				.then(response => {
+					if (response.data.suc == true) {
+						alert('成功刪除案主資料！');
+						window.location.href='/client';
+					} else {
+						alert('未登入或超過時效，請重新登入！');
+						window.location.href='/login';
+					}
+				})
+				.catch(error => {
+					console.error(error);
+				});
+		}
+		function show_detail(id) {
+			axios.get(`/api/client/${id}`)
+				.then(response => {
+					detail_tab = document.getElementById('detail_tab');
+					detail_tab.innerHTML = "";
+					let detail = response.data;
+					var text = "";
+					text += `<tr><td>案主編號</td><td>${detail.s_num}</td></tr><tr><td>姓</td><td>${detail.ct_lastname}</td></tr><tr><td>名</td><td>${detail.ct_name}</td></tr><tr><td>性別</td><td>${detail.ct_gender}</td></tr><tr><td>住址</td><td>${detail.ct_address}</td></tr><tr><td>案主住址經度</td><td>${detail.ct_lon}</td></tr><tr><td>案主住址緯度</td><td>${detail.ct_lat}</td></tr><tr><td>便當類型</td><td><a href="/bento/detail/${detail.bo_s_num}">${detail.bo_s_num}</a></td></tr>`;
+                                	detail_tab.innerHTML += text;
+                        	})
+                        	.catch(error => {
+                                	console.error(error);
+                        	});
+		}
+	</script>
+							
+</body>
+</html>

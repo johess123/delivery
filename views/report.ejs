@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>輸出報表</title>
+</head>
+<body>
+	<%- include('function') %>
+	<div class="col py-3">
+	<nav aria-label="breadcrumb">
+		<ol class="breadcrumb">
+		<li class="breadcrumb-item me-2"><img src="/menu.png" width="16" height="16"></li>
+		<li class="breadcrumb-item"><a href="/main" class="bread-text">首頁</a></li>
+		<li class="breadcrumb-item active" aria-current="page">管理報表</li>
+		</ol>
+	</nav>
+	<button type="button" class="btn btn5" onclick="day()">匯出當日報表</button>
+	<button type="button" class="btn btn5" onclick="month()">匯出上月報表</button>
+	</div>
+	</div>
+	</div>
+	<%- include('sos') %>
+	<script src = 'https://cdnjs.cloudflare.com/ajax/libs/axios/0.27.2/axios.min.js' ></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+	<script>
+		function day() {
+			axios.get('/report/day')
+				.then(response => {
+					if (response.data.length == 0) {
+						alert('當日報表尚未建立，無法匯出！');
+					} else {
+						dailyExcel(response.data);
+						alert('匯出成功！');
+					}
+				})
+				.catch(error => {
+					console.error(error);
+				});
+		}
+		function month() {
+			axios.get('/report/month')
+				.then(response => {
+					if (response.data.length == 0) {
+						alert('上月報表尚未建立，無法匯出！');
+					} else {
+						monthlyExcel(response.data);
+						alert('匯出成功！');
+					}
+				})
+				.catch(error => {
+					console.error(error);
+				});
+		}
+		function createWorkbook(data) { // 建立工作簿
+			const workbook = XLSX.utils.book_new();
+			const datas = [["編號","訂單日期","客戶編號","訂單價錢"]];
+			for (let i = 0; i < data.length; i++) {
+				const this_data = [i+1,data[i].date,data[i].price,data[i].ct_s_num];
+				datas.push(this_data);
+			}
+			const sheet = XLSX.utils.aoa_to_sheet(datas);
+			XLSX.utils.book_append_sheet(workbook, sheet, "Sheet1");
+			return workbook;
+		}
+		function dailyExcel(data) { // 匯出日報表excel
+			const workbook = createWorkbook(data);
+			const today = new Date();
+			console.log(today);
+			const filename = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}_日報表.xlsx`;
+			XLSX.writeFile(workbook, filename);
+		}
+		function monthlyExcel(data) { // 匯出月報表excel
+			const workbook = createWorkbook(data);
+			const today = new Date();
+			console.log(today);
+			const filename = `${today.getFullYear()}-${today.getMonth()}_月報表.xlsx`;
+			XLSX.writeFile(workbook, filename);
+		}
+	</script>
+</body>
+</html>

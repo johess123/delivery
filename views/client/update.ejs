@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>管理案主</title>
+</head>
+<body>
+	<%- include('../function') %>
+	<div class="col py-3">
+	<nav aria-label="breadcrumb">
+		<ol class="breadcrumb">
+		<li class="breadcrumb-item me-2"><img src="/menu.png" width="16" height="16"></li>
+		<li class="breadcrumb-item"><a href="/main" class="bread-text">首頁</a></li>
+		<li class="breadcrumb-item"><a href="/client" class="bread-text">管理案主</a></li>
+		<li class="breadcrumb-item active" aria-current="page">修改案主資料</li>
+		</ol>
+	</nav>
+	<div class="container mt-5">
+		<div class="row justify-content-center">
+		<div class="col-md-6">
+			<div class="card">
+				<div class="card-header" style="background-color:rgb(11,59,79); color:white">
+					<strong>修改案主資料</strong>
+				</div>
+				<div class="card-body">
+				<form id="updateForm">
+				<div class="row mb-3">
+				  <div class="col-6">
+				    <label for="inputlast_name" class="form-label">姓</label>
+				    <input type="text" class="form-control" name="last_name" id="last_name">
+				  </div>
+				  <div class="col-6">
+				    <label for="inputname" class="form-label">名</label>
+				    <input type="text" class="form-control" name="name" id="name" required>
+				  </div>
+				</div>
+				<div class="mb-3 col-12">
+					<div><label for="inputPassword4" class="form-label">性別</label></div>
+					<div class="form-check form-check-inline">
+						<input class="form-check-input" type="radio" name="gender" id="gender" value="男" checked>
+						<label class="form-check-label" for="gridRadios1">男</label>
+					</div>
+					<div class="form-check form-check-inline">
+						<input class="form-check-input" type="radio" name="gender" id="gender" value="女">
+						<label class="form-check-label" for="gridRadios1">女</label>
+					</div>
+				</div>
+				<div class="mb-3 col-12">
+				  <label for="inputAddress" class="form-label">住址</label>
+				  <input type="text" class="form-control" id="address" name="address" placeholder="1234 Main St">
+				</div>
+				<div class="row mb-3">
+				  <div class="col-6">
+				    <label for="inputState" class="form-label">便當類型</label>
+				    <select class="form-select" name="bento" id="bento" required>
+				    </select>
+				  </div>
+				  <div class="col-6">
+				    <div><label for="inputState" class="form-label">訂單時段</label></div>
+				    <div class="form-check form-check-inline">
+				      <input class="form-check-input" type="radio" name="time" id="time" value="1">
+				      <label class="form-check-label" for="gridRadios1">午餐</label>
+				    </div>
+				    <div class="form-check form-check-inline">
+				      <input class="form-check-input" type="radio" name="time" id="time" value="2">
+				      <label class="form-check-label" for="gridRadios1">晚餐</label>
+				    </div>
+				  </div>
+				</div>
+				<div class="text-center">
+				  <button type="submit" class="btn btn-light" onclick="window.location.href='/client'">取消</button>
+				  <button type="submit" class="btn btn4">修改</button>
+				</div>
+			  </form>
+		</div>
+		<div class="col-2"></div>
+	</div>
+	</div>
+	</div>
+	</div>
+	<%- include('../sos') %>
+	<script src = 'https://cdnjs.cloudflare.com/ajax/libs/axios/0.27.2/axios.min.js' ></script>
+	<script>
+		// 先取得原本資料
+		const id = '<%= id %>';
+		console.log(id);
+		const form = document.getElementById('updateForm');
+		axios.get(`/api/client/${id}`)
+			.then(response => {
+				let client = response.data;
+				console.log(client);
+				form.last_name.value = response.data.ct_lastname;
+				form.name.value = response.data.ct_name;
+				form.gender.value = response.data.ct_gender;
+				form.address.value = response.data.ct_address;		
+				axios.get('/api/bento')
+					.then(response1 => {
+						options = response1.data;
+						//console.log(options);
+						const select = document.getElementById('bento');
+						options.forEach(option => {
+							const optionElement = document.createElement('option');
+							optionElement.value = option.s_num;
+							optionElement.textContent = option.bo_name;
+							select.appendChild(optionElement);
+						});
+						document.getElementById("bento").value = response.data.bo_s_num;
+					})
+					.catch(error => console.log(error));
+				form.time.value = response.data.ct_time;
+			})
+			.catch(error => {
+				console.error(error);
+			});
+		form.addEventListener('submit', (event) => {
+			event.preventDefault(); // 防止送出後頁面刷新
+			const formData = new FormData(form);
+			const {suc : t} = axios.put(`/client/update/${id}`, Object.fromEntries(formData))
+				.then(response => {
+					if (response.data.suc === true) {
+						alert('成功修改客戶資料！');
+						window.location.href='/client';
+					}
+				})
+				.catch(error => {
+					console.error(error);
+				});
+		})
+	</script>
+</body>
+</html>

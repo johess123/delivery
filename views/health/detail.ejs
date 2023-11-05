@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>案主健康記錄</title>
+</head>
+<body>
+	<%- include('../function') %>
+	<div class="col py-3">
+	<nav aria-label="breadcrumb">
+		<ol class="breadcrumb">
+		<li class="breadcrumb-item me-2"><img src="/menu.png" width="16" height="16"></li>
+		<li class="breadcrumb-item"><a href="/main">首頁</a></li>
+		<li class="breadcrumb-item"><a href="/health">案主健康紀錄</a></li>
+		<li class="breadcrumb-item active" aria-current="page">詳細健康紀錄</li>
+		</ol>
+	</nav>
+	<table class="table table-bordered mt-5" id="tab">
+		<thead class="table-primary">
+		<tr><th>案主編號</th><th>姓名</th><th>日期</th><th>是否有看到案主</th><th>案主是否有狀況</th><th>備註</th><th>圖片</th><th>記錄送餐員編號</th></tr>
+		</thead>
+	</table>
+	<%- include('../sos') %>
+	<script src = 'https://cdnjs.cloudflare.com/ajax/libs/axios/0.27.2/axios.min.js' ></script>
+	<script>
+		const id = '<%= id %>';
+		const date = '<%= date %>';
+		console.log(id);
+		axios.get(`/api/health/${id}/${date}`)
+			.then(response => {
+				let health = response.data;
+				let text = `<tr><td>${health.s_num}</td><td>${health.ct_lastname}${health.ct_name}</td><td>${health.date}</td>`
+				if (health.status1 === 0) {
+					text += `<td>沒有</td>`;
+				} else {
+					text += `<td>有</td>`;
+				}
+				if (health.status2 === 0) {
+					text += `<td>無狀況</td>`;
+				} else {
+					text += `<td>有狀況</td>`;
+				}
+	       			text += `<td>${health.remark}</td>`;
+				if (health.cs_img == null) {
+					text += `<td>無圖片</td>`;
+				} else {
+					text += `<td><img src="/status/${health.cs_img}" style="width:100px; height:100px;"></td>`;
+	       			}
+					text += `<td><a href='/delivery/detail/${health.dp_s_num}'>${health.dp_s_num}</a></td></tr>`;
+				tab.innerHTML += text;
+			})
+			.catch(error => {
+				console.error(error);
+			});			
+	</script>
+</body>
+</html>

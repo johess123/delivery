@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>管理送餐員</title>
+</head>
+<body>
+	<%- include('../function') %>
+	<div class="col py-3">
+	<nav aria-label="breadcrumb">
+		<ol class="breadcrumb">
+		<li class="breadcrumb-item me-2"><img src="/menu.png" width="16" height="16"></li>
+		<li class="breadcrumb-item"><a href="/main">首頁</a></li>
+		<li class="breadcrumb-item"><a href="/delivery">管理送餐員</a></li>
+		<li class="breadcrumb-item active" aria-current="page">詳細送餐員資料</li>
+		</ol>
+	</nav>
+	<table class="table table-bordered mt-5" id="tab">
+		<thead class="table-primary">
+		<tr><th>送餐員編號</th><th>帳號編號</th><th>姓</th><th>名</th><th>綽號</th><th>加入理由</th><th>經驗</th><th>圖片</th></tr>
+		</thead>
+	</table>
+	<%- include('../sos') %>
+	<script src = 'https://cdnjs.cloudflare.com/ajax/libs/axios/0.27.2/axios.min.js' ></script>
+	<script>
+		const id = '<%= id %>';
+		console.log(id);
+		axios.get(`/api/delivery/${id}`)
+			.then(response => {
+				let delivery = response.data;
+				let text = `<tr><td>${delivery.s_num}</td><td>${delivery.ur_s_num}</td><td>${delivery.dp01}</td><td>${delivery.dp02}</td><td>${delivery.dp_nickname}</td><td>${delivery.dp_reason}</td><td>${delivery.dp_experience}</td>`;	
+				if (delivery.dp_img == null) {
+					text += `<td>無圖片</td>`;
+				} else {
+					text += `<td><img src="/dp/${delivery.dp_img}" style="width:100px; height:100px;"></td>`;
+	       			}
+				tab.innerHTML += text;
+			})
+			.catch(error => {
+				console.error(error);
+			});			
+	</script>
+</body>
+</html>

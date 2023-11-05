@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>管理菜色</title>
+</head>
+<body>	
+	<%- include('../function') %>
+	<div class="col py-3">
+	<nav aria-label="breadcrumb">
+		<ol class="breadcrumb">
+		<li class="breadcrumb-item me-2"><img src="/menu.png" width="16" height="16"></li>
+		<li class="breadcrumb-item"><a href="/main">首頁</a></li>
+		<li class="breadcrumb-item"><a href="/food">管理菜色</a></li>
+		<li class="breadcrumb-item active" aria-current="page">詳細菜色資料</li>
+		</ol>
+	</nav>
+	<table class="table table-bordered mt-5" id="tab">
+		<thead class="table-primary">
+		<tr><th>菜色編號</th><th>名稱</th><th>葷素</th><th>描述</th><th>價錢</th></tr>
+		</thead>
+	</table>
+	</div>
+	<%- include('../sos') %>
+	<script src = 'https://cdnjs.cloudflare.com/ajax/libs/axios/0.27.2/axios.min.js' ></script>
+	<script>
+		const id = '<%= id %>';
+		axios.get(`/api/food/${id}`)
+			.then(response => {
+				let food = response.data;
+				var allText = ""
+				allText += `<tr><td>${food.s_num}</td><td>${food.ds_name}</td>`
+				const food_type = food.description.split("//")[0];
+				if (food_type === "葷") {
+					allText += "<td>葷食</td>";
+				} else {
+					allText += "<td>素食</td>";
+				}
+				const description = modifyDes(food.description);
+				allText += `<td>${description}</td>`;
+				allText += `<td>${food.price}</td></tr>`;
+				tab.innerHTML += allText;
+			})
+			.catch(error => {
+				console.error(error);
+			});
+		function modifyDes(text) {
+			const text1 = text.split("//");
+			var result = "";
+			for (let i = 1; i < text1.length; i++) {
+				result = result+"("+(i)+") "+text1[i]+"<br>";
+			}
+			return result;
+		}
+	</script>
+							
+</body>
+</html>

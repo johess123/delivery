@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>簽到簽退紀錄</title>
+</head>
+<body>
+	<%- include('function') %>
+	<div class="col py-3">
+	<nav aria-label="breadcrumb">
+		<ol class="breadcrumb">
+		<li class="breadcrumb-item me-2"><img src="/menu.png" width="16" height="16"></li>
+		<li class="breadcrumb-item"><a href="/main">首頁</a></li>
+		<li class="breadcrumb-item active" aria-current="page">簽到簽退紀錄</li>
+		</ol>
+	</nav>
+	<form id="searchForm" method="GET">
+	<div class="row mt-5">
+		<div class="col-lg-2">
+			<input type="text" id="route_name" name="route_name" class="form-control" placeholder="路線名稱">
+		</div>
+		<div class="col-lg-2">
+			<input type="text" id="dp_name" name="dp_name" class="form-control" placeholder="送餐員姓名">
+		</div>
+		<div class="col-lg-2">
+			<input type="text" id="ct_name" name="ct_name" class="form-control" placeholder="案主姓名">
+		</div>
+		<div class="col-lg-2">
+			<input type="date" id="ph_time" name="ph_time" class="form-control" placeholder="時間">
+		</div>
+		<div class="col-lg-3">
+
+			<button type="submit" class="btn btn-primary">
+				<img src="/search.png" width="16">
+				<span>查詢</span>
+			</button>
+			<button type="button" class="btn btn-outline-primary" onclick="window.location.href='/punch'">
+				<span>重置</span>
+			</button>
+		</div>
+	</div>
+	<div id="tab" class="mt-4">
+		<table class="table table-bordered" id="tab1">
+		</table>
+	</div>
+	<div id="tab2" class="d-flex justify-content-end"></div>
+	</div>
+	</div>
+	</div>
+	<%- include('sos') %>
+	<script src = 'https://cdnjs.cloudflare.com/ajax/libs/axios/0.27.2/axios.min.js' ></script>
+	<script>
+		var tb1 = document.getElementById('tab1');
+		const tab1_th = '<thead class="table-primary"><tr class="align-middle"><th scope="col">No.</th><th scope="col">路線名稱</th><th scope="col">訂餐時段</th><th scope="col">送餐員姓名</th><th scope="col">案主姓名</th><th scope="col">便當名稱</th><th scope="col"><div class="d-flex align-items-center"><select id="ph_inorout" class="form-select form-select-sm"><option value=2>簽到/簽退</option><option value=0>簽到</option><option value=1>簽退</option></select></div></th><th scope="col">簽到/簽退時間</th><th scope="col"><div class="d-flex align-items-center"><select id="ph_wifi" class="form-select form-select-sm"><option value=2>簽到方式</option><option value=0>無網路</option><option value=1>有網路</option></select></div></th></tr>';
+		var id;
+		var name;
+		var date;
+		var punch;
+		var search_punch;
+		var on_search = false;
+		var page = 1;
+		var page_display = 5;
+		var total_page;
+		function pagination(pos,now_page) {
+			if (pos === "one") {
+	       			return `<nav aria-label="Page navigation example">
+			  	<ul class="pagination">
+			    	<li class="page-item active"><a class="page-link">1</a></li>
+			  	</ul>
+				</nav>`;
+			} else if (pos === "first") {
+				return `<nav aria-label="Page navigation example">
+			  	<ul class="pagination">
+	       		    	<li class="page-item active"><a class="page-link">${now_page}</a></li>
+			    	<li class="page-item">
+			      	<a class="page-link" href="#" aria-label="Next" onclick="next()">
+			        <span aria-hidden="true">&raquo;</span>
+			      	</a>
+			    	</li>
+			  	</ul>
+				</nav>`;
+			} else if (pos === "center") {
+				return `<nav aria-label="Page navigation example">
+			  	<ul class="pagination">
+				<li class="page-item">
+				<a class="page-link" href="#" aria-label="Previous" onclick="prev()">
+			        <span aria-hidden="true">&laquo;</span>
+			      	</a>
+			    	</li>
+	       		    	<li class="page-item active"><a class="page-link">${now_page}</a></li>
+			    	<li class="page-item">
+			      	<a class="page-link" href="#" aria-label="Next" onclick="next()">
+			        <span aria-hidden="true">&raquo;</span>
+			      	</a>
+			    	</li>
+			  	</ul>
+				</nav>`;
+			} else {
+				return `<nav aria-label="Page navigation example">
+			  	<ul class="pagination">
+			    	<li class="page-item">
+			      	<a class="page-link" href="#" aria-label="Previous" onclick="prev()">
+			        <span aria-hidden="true">&laquo;</span>
+			      	</a>
+			    	</li>
+	       		  	<li class="page-item active"><a class="page-link">${now_page}</a></li>
+			  	</ul>
+				</nav>`;
+			}
+		};
+		// 取得打卡記錄
+		axios.get('/api/punch')
+			.then(response => {
+				tab1.innerHTML = tab1_th;
+				punch = response.data;
+				console.log(punch)
+				for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+					if (i < punch.length) {
+						tab1.innerHTML += get_tb1_tb(punch,i);
+					}
+				}
+				total_page = Math.ceil(punch.length/page_display);
+				if (page < total_page) {
+					tab2.innerHTML = pagination('first',page);
+				} else {
+					tab2.innerHTML = pagination('one',1);
+				}
+			})
+			.catch(error => {
+				console.error(error);
+			});
+		function get_tb1_tb(punch,i) {
+			var text = `<tr id=tr${i%10+1}><td>${i+1}</td><td>${punch[i].reh_name}</td>`;
+			if (punch[i].ct_time === 1) {
+				text += `<td>午餐/午晚餐</td>`;
+			} else {
+				text += `<td>晚餐</td>`;
+			}
+			text += `<td>${punch[i].dp_name}</td><td>${punch[i].ct_name}</td><td>${punch[i].bo_name}</td>`;
+			if (punch[i].ph_inorout === 0) {
+				text += `<td>簽到</td>`;
+			} else {
+				text += `<td>簽退</td>`;
+			}
+			text += `<td>${punch[i].ph_time}</td>`;
+			if (punch[i].ph_wifi === 0) {
+				text += `<td>無網路</td>`;
+			} else {
+				text += `<td>有網路</td>`;
+			}
+			return text;
+		}
+		function next() {
+			tab1.innerHTML = tab1_th;
+			page += 1
+			for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+				if (on_search == false) {
+					if (i < punch.length) {
+						tab1.innerHTML += get_tb1_tb(punch,i);
+					}
+				} else {
+					if (i < search_punch.length) {
+						tab1.innerHTML += get_tb1_tb(search_punch,i);
+					}
+				}
+			}
+			if (page < total_page) {
+				tab2.innerHTML = pagination("center",page);
+			} else {
+				tab2.innerHTML = pagination("last",page);
+			}
+		}
+		function last() {
+			tab1.innerHTML = tab1_th;
+			page = total_page;
+			for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+				if (on_search == false) {
+					if (i < punch.length) {
+						tab1.innerHTML += get_tb1_tb(punch,i);
+					}
+				} else {
+					if (i < search_punch.length) {
+						tab1.innerHTML += get_tb1_tb(search_punch,i);
+					}
+				}
+			}
+			tab2.innerHTML = pagination("last",page);
+		}
+		function first() {
+			tab1.innerHTML = tab1_th;
+			page = 1;
+			for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+				if (on_search == false) {
+					if (i < punch.length) {
+						tab1.innerHTML += get_tb1_tb(punch,i);
+					}
+				} else {
+					if (i < search_punch.length) {
+						tab1.innerHTML += get_tb1_tb(search_punch,i);
+					}
+				}
+			}
+			tab2.innerHTML = pagination("first",page);
+		}
+		function prev() {
+			tab1.innerHTML = tab1_th;
+			page -= 1
+			for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+				if (on_search == false) {
+					if (i < punch.length) {
+						tab1.innerHTML += get_tb1_tb(punch,i);
+					}	
+				} else {
+					if (i < search_punch.length) {
+						tab1.innerHTML += get_tb1_tb(search_punch,i);
+					}
+				}
+			}
+			if (page > 1) {
+				tab2.innerHTML = pagination("center",page);
+			} else {
+				tab2.innerHTML = pagination("first",page);
+			}
+		}
+		document.getElementById("searchForm").addEventListener('submit', function(event) {
+			event.preventDefault(); // 防止送出後頁面刷新
+			on_search = true;
+			reh_name = document.getElementById("searchForm").querySelectorAll('input')[0].value;
+			dp_name = document.getElementById("searchForm").querySelectorAll('input')[1].value;
+			ct_name = document.getElementById("searchForm").querySelectorAll('input')[2].value;
+			ph_time = document.getElementById("searchForm").querySelectorAll('input')[3].value;
+			var ph_inorout = document.getElementById("ph_inorout");
+			if (ph_inorout !== null) {
+				ph_inorout = ph_inorout.value;
+			}
+			var ph_wifi = document.getElementById("ph_wifi");
+			if (ph_wifi !== null) {
+				ph_wifi = ph_wifi.value;
+			}
+			search_punch = punch;
+			if (reh_name !== "") {
+				search_punch = search_punch.filter(this_punch => this_punch.reh_name.toString().startsWith(reh_name));
+			}
+			if (dp_name !== "") {
+				search_punch = search_punch.filter(this_punch => this_punch.dp_name.toString().startsWith(dp_name));
+			}
+			if (ct_name !== "") {
+				search_punch = search_punch.filter(this_punch => this_punch.ct_name.toString().startsWith(ct_name));
+			}
+			if (ph_time !== "") {
+				search_punch = search_punch.filter(this_punch => this_punch.ph_time.startsWith(ph_time));
+			}
+			if (ph_inorout !== "2" && ph_inorout !== null) {
+				console.log(ph_inorout);
+				search_punch = search_punch.filter(this_punch => this_punch.ph_inorout==ph_inorout);
+			}
+			if (ph_wifi !== "2" && ph_wifi !== null) {
+				search_punch = search_punch.filter(this_punch => this_punch.ph_wifi==ph_wifi);
+			}
+			tab1.innerHTML = tab1_th;
+			if (search_punch.length == 0) {
+				tab1.innerHTML = '<h3>查無簽到/簽退紀錄！</h3>';
+				tab2.innerHTML = "";
+			} else {
+				page = 1;
+				for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+					if (i < search_punch.length) {
+						tab1.innerHTML += get_tb1_tb(search_punch,i)
+					}
+				}
+				var new_ph_inorout = document.getElementById("ph_inorout");
+				if (new_ph_inorout !== null) {
+					new_ph_inorout.value = ph_inorout;
+				}
+				var new_ph_wifi = document.getElementById("ph_wifi");
+				if (new_ph_wifi !== null) {
+					new_ph_wifi.value = ph_wifi;
+				}
+				total_page = Math.ceil(search_punch.length/page_display);
+				if (page < total_page) {
+					tab2.innerHTML = pagination("first",page);
+				} else {
+					tab2.innerHTML = pagination("one",1);
+				}
+			}
+		})
+	</script>
+							
+</body>
+</html>

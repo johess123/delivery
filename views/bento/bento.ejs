@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>管理便當</title>
+</head>
+<body>
+	<%- include('../function') %>
+
+	<div class="col py-3">
+	<nav aria-label="breadcrumb">
+		<ol class="breadcrumb">
+		<li class="breadcrumb-item me-2"><img src="/menu.png" width="16" height="16"></li>
+		<li class="breadcrumb-item"><a href="/main">首頁</a></li>
+		<li class="breadcrumb-item active" aria-current="page">管理便當</li>
+		</ol>
+	</nav>
+	<form id="searchForm" method="GET">
+		<div class="row mt-5">
+			<div class="col-lg-2">
+				<input type="text" id="id" name="id" class="form-control" placeholder="便當編號">
+			</div>
+			<div class="col-lg-2">
+				<input type="text" id="name" name="name" class="form-control" placeholder="名稱">
+			</div>
+			<div class="col-lg-3">
+	
+				<button type="submit" class="btn btn-primary">
+					<img src="/search.png" width="16">
+					<span>查詢</span>
+				</button>
+				<button type="button" class="btn btn-outline-primary" onclick="window.location.href='/bento'">
+					<span>重置</span>
+				</button>
+				<button type="button" class="btn btn-outline-primary" onclick="window.location.href='/bento/create'">+ 新增便當</button>
+			</div>
+		</div>
+	</form>
+	<div id="tab" class="mt-4">
+		<table class="table table-bordered" id="tab1">
+		</table>
+	</div>
+	<div id="tab2" class="d-flex justify-content-end"></div>
+	</div>
+	</div>
+	</div>
+	<%- include('../sos') %>
+	<script src = 'https://cdnjs.cloudflare.com/ajax/libs/axios/0.27.2/axios.min.js' ></script>
+	<script>
+		var tab1 = document.getElementById('tab1');
+		const tab1_th = '<thead class="table-primary"><tr><th scope="col">No.</th><th scope="col">便當編號</th><th scope="col">名稱</th><th scope="col">其他功能</th></tr></thead>';
+		var id = "";
+		var name;
+		var bento;
+		var search_bento;
+		var on_search = false; // 是否在搜尋狀態 
+		var page = 1; // 目前頁數
+		var page_display = 5; // 一頁顯示幾筆
+		var total_page; // 總共幾頁
+		function pagination(pos,now_page) {
+			if (pos === "one") {
+	       			return `<nav aria-label="Page navigation example">
+			  	<ul class="pagination">
+			    	<li class="page-item active"><a class="page-link">1</a></li>
+			  	</ul>
+				</nav>`;
+			} else if (pos === "first") {
+				return `<nav aria-label="Page navigation example">
+			  	<ul class="pagination">
+	       		    	<li class="page-item active"><a class="page-link">${now_page}</a></li>
+			    	<li class="page-item">
+			      	<a class="page-link" href="#" aria-label="Next" onclick="next()">
+			        <span aria-hidden="true">&raquo;</span>
+			      	</a>
+			    	</li>
+			  	</ul>
+				</nav>`;
+			} else if (pos === "center") {
+				return `<nav aria-label="Page navigation example">
+			  	<ul class="pagination">
+				<li class="page-item">
+				<a class="page-link" href="#" aria-label="Previous" onclick="prev()">
+			        <span aria-hidden="true">&laquo;</span>
+			      	</a>
+			    	</li>
+	       		    	<li class="page-item"><a class="page-link">${now_page}</a></li>
+			    	<li class="page-item">
+			      	<a class="page-link" href="#" aria-label="Next" onclick="next()">
+			        <span aria-hidden="true">&raquo;</span>
+			      	</a>
+			    	</li>
+			  	</ul>
+				</nav>`;
+			} else {
+				return `<nav aria-label="Page navigation example">
+			  	<ul class="pagination">
+			    	<li class="page-item">
+			      	<a class="page-link" href="#" aria-label="Previous" onclick="prev()">
+			        <span aria-hidden="true">&laquo;</span>
+			      	</a>
+			    	</li>
+	       		  	<li class="page-item active"><a class="page-link">${now_page}</a></li>
+			  	</ul>
+				</nav>`;
+			}
+		};
+		getBento();
+		// 取得菜色資料
+		function getBento() {
+			axios.get('/api/bento')
+				.then(response => {
+					tab1.innerHTML = tab1_th;
+					bento = response.data;
+					for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+						if (i < bento.length) {
+							tab1.innerHTML += get_tb1_tb(bento,i);
+						}
+					}
+					total_page = Math.ceil(bento.length/page_display);
+					if (page < total_page) {
+						tab2.innerHTML = pagination('first',page);
+					} else {
+						tab2.innerHTML = pagination('one',1);
+					}
+				})
+				.catch(error => {
+					console.error(error);
+				});
+		}
+		function get_tb1_tb(bento,i) {
+			return `<tr id=tr${i%10+1}><td>${i+1}</td><td>${bento[i].s_num}</td><td>${bento[i].bo_name}</td><td><button type="button" class="btn btn-primary mx-1" onclick="window.location.href='/bento/detail/${bento[i].s_num}'">詳細</button><button type="button" class="btn btn-warning mx-1" onclick="window.location.href='/bento/update/${bento[i].s_num}'">修改</button><button type="button" class="btn btn-danger mx-1" onclick="deleteBento(${bento[i].s_num})">刪除</button></td></tr>`
+		}
+		function prev() {
+			tab1.innerHTML = tab1_th;
+			page -= 1
+			for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+				if (on_search == false) {
+					if (i < bento.length) {
+						tab1.innerHTML += get_tb1_tb(bento,i);
+					}	
+				} else {
+					if (i < search_bento.length) {
+						tab1.innerHTML += get_tb1_tb(search_bento,i);
+					}
+				}
+			}
+			if (page > 1) {
+				tab2.innerHTML = pagination("center",page);
+			} else {
+				tab2.innerHTML = pagination("first",page);
+			}
+		}
+		function next() {
+			tab1.innerHTML = tab1_th;
+			page += 1
+			for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+				if (on_search == false) {
+					if (i < bento.length) {
+						tab1.innerHTML += get_tb1_tb(bento,i)
+					}
+				} else {
+					if (i < search_bento.length) {
+						tab1.innerHTML += get_tb1_tb(search_bento,i)
+					}
+				}
+			}
+			if (page < total_page) {
+				tab2.innerHTML = pagination("center",page);
+			} else {
+				tab2.innerHTML = pagination("last",page);
+			}
+		}
+		function last() {
+			tab1.innerHTML = tab1_th;
+			page = total_page;
+			for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+				if (on_search == false) {
+					if (i < bento.length) {
+						tab1.innerHTML += get_tb1_tb(bento,i);
+					}
+				} else {
+					if (i < search_bento.length) {
+						tab1.innerHTML += get_tb1_tb(search_bento,i);
+					}
+				}
+			}
+			tab2.innerHTML = pagination("last",page)
+		}
+		function first() {
+			tab1.innerHTML = tab1_th;
+			page = 1;
+			for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+				if (on_search == false) {
+					if (i < bento.length) {
+						tab1.innerHTML += get_tb1_tb(bento,i)
+					}
+				} else {
+					if (i < search_bento.length) {
+						tab1.innerHTML += get_tb1_tb(search_bento,i);
+					}
+				}
+			}
+			tab2.innerHTML = pagination("first",page);
+		}
+		document.getElementById("searchForm").addEventListener('submit', function(event) {
+			event.preventDefault();
+			on_search = true;
+			id = document.getElementById("searchForm").querySelectorAll('input')[0].value;
+			name = document.getElementById("searchForm").querySelectorAll('input')[1].value;
+			search_bento = bento;
+			if (id !== "") {
+				search_bento = bento.filter(this_bento => this_bento.s_num.toString().startsWith(id));
+			}
+			if (name !== "") {
+				search_bento = search_bento.filter(this_bento => this_bento.bo_name.startsWith(name));
+			}
+			tab.innerHTML = tab1_th;
+			if (search_bento.length == 0) {
+				tab1.innerHTML = '<h3>查無便當！</h3>';
+				tab2.innerHTML = "";
+			} else {
+				page = 1;
+				for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+					if (i < search_bento.length) {
+						tab1.innerHTML += get_tb1_tb(search_bento,i);
+					}
+				}
+				total_page = Math.ceil(search_bento.length/page_display);
+				if (page < total_page) {
+					tab2.innerHTML = pagination("first",page);
+				} else {
+					tab2.innerHTML = pagination("one",1);
+				}
+			}
+		});
+		function deleteBento(id) {
+			const {suc : t} = axios.delete(`/bento/delete/${id}`)
+				.then(response => {
+					if (response.data.suc == true) {
+						alert('成功刪除便當資料！');
+						window.location.href='/bento';
+					} else {
+						alert('登入驗證失敗，請重新登入！');
+						window.location.href='/login';
+					}
+				})
+				.catch(error => {
+					console.error(error);
+				});
+		}
+	</script>
+							
+</body>
+</html>

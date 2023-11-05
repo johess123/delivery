@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>管理路線</title>
+</head>
+<body>
+	<%- include('../function') %>
+
+	<div class="col py-3">
+	<nav aria-label="breadcrumb">
+		<ol class="breadcrumb">
+		<li class="breadcrumb-item me-2"><img src="/menu.png" width="16" height="16"></li>
+		<li class="breadcrumb-item"><a href="/main" class="bread-text">首頁</a></li>
+		<li class="breadcrumb-item active" aria-current="page">管理路線</li>
+		</ol>
+	</nav>
+	<form id="searchForm" method="GET">
+	<div class="row mt-5">
+		<div class="col-lg-2">
+			<input type="text" id="id" name="id" class="form-control" placeholder="路線編號">
+		</div>
+		<div class="col-lg-2">
+			<input type="text" id="name" name="name" class="form-control" placeholder="名稱">
+		</div>
+		<div class="col-lg-3">
+			<button type="submit" class="btn btn4">
+				<img src="/search.png" width="16">
+				<span>查詢</span>
+			</button>
+			<button type="button" class="btn btn5" onclick="window.location.href='/route'">
+				<span>重置</span>
+			</button>
+			<button type="button" class="btn btn6" onclick="window.location.href='/route/create'">+ 新增路線</button>
+		</div>
+	</div>
+	</form>
+	<div id="tab" class="mt-4">
+		<table class="table table-bordered" id="tab1">
+		</table>
+	</div>
+	<div id="tab2" class="d-flex justify-content-end"></div>
+	</div>
+	</div>
+	</div>
+	<div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header" style="background-color: rgb(11,59,79)">
+            <h5 class="modal-title" style="color: white" id="exampleModalLabel"><b>詳細路線資料</b></h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table" id="detail_tab"></table>
+            </div>
+          </div>
+        </div>
+      </div>
+	<%- include('../sos') %>
+	<script src = 'https://cdnjs.cloudflare.com/ajax/libs/axios/0.27.2/axios.min.js' ></script>
+	<script>
+		var tab1 = document.getElementById('tab1');
+		const tab1_th = '<thead><tr id=tr_th><th scope="col" style="background-color:rgb(11,59,79);color:white">No.</th><th scope="col" style="background-color:rgb(11,59,79);color:white">路線編號</th><th scope="col" style="background-color:rgb(11,59,79);color:white">名稱</th><th scope="col" style="background-color:rgb(11,59,79);color:white">其他功能</th></tr></thead>';
+		var id; // 搜路線編號
+		var name; // 搜路線名稱
+		var route;
+		var search_route;
+		var on_search = false;
+		var page = 1;
+		var page_display = 5;
+		var total_page;
+		function pagination(pos,now_page) {
+			if (pos === "one") {
+	       			return `<nav aria-label="Page navigation example">
+			  	<ul class="pagination">
+			    	<li class="page-item active"><a class="page-link">1</a></li>
+			  	</ul>
+				</nav>`;
+			} else if (pos === "first") {
+				return `<nav aria-label="Page navigation example">
+			  	<ul class="pagination">
+	       		    	<li class="page-item active"><a class="page-link">${now_page}</a></li>
+			    	<li class="page-item">
+			      	<a class="page-link" href="#" aria-label="Next" onclick="next()">
+			        <span aria-hidden="true">&raquo;</span>
+			      	</a>
+			    	</li>
+			  	</ul>
+				</nav>`;
+			} else if (pos === "center") {
+				return `<nav aria-label="Page navigation example">
+			  	<ul class="pagination">
+				<li class="page-item">
+				<a class="page-link" href="#" aria-label="Previous" onclick="prev()">
+			        <span aria-hidden="true">&laquo;</span>
+			      	</a>
+			    	</li>
+	       		    	<li class="page-item active"><a class="page-link">${now_page}</a></li>
+			    	<li class="page-item">
+			      	<a class="page-link" href="#" aria-label="Next" onclick="next()">
+			        <span aria-hidden="true">&raquo;</span>
+			      	</a>
+			    	</li>
+			  	</ul>
+				</nav>`;
+			} else {
+				return `<nav aria-label="Page navigation example">
+			  	<ul class="pagination">
+			    	<li class="page-item">
+			      	<a class="page-link" href="#" aria-label="Previous" onclick="prev()">
+			        <span aria-hidden="true">&laquo;</span>
+			      	</a>
+			    	</li>
+	       		  	<li class="page-item active"><a class="page-link">${now_page}</a></li>
+			  	</ul>
+				</nav>`;
+			}
+		};
+		getRoute();
+		// 取得路線資料
+		function getRoute() {
+			axios.get('/api/route')
+				.then(response => {
+					tab1.innerHTML = tab1_th;
+					route = response.data;
+					for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+						if (i < route.length) {
+							tab1.innerHTML += get_tb1_tb(route,i);
+						}
+					}
+					total_page = Math.ceil(route.length/page_display);
+					if (page < total_page) {
+						tab2.innerHTML = pagination('first',page);
+					} else {
+						tab2.innerHTML = pagination('one',1);
+					}
+				})
+				.catch(error => {
+					console.error(error);
+				});
+		}
+		function get_tb1_tb(route,i) {
+			return `<tr id=tr${i%10+1}><td>${i+1}</td><td>${route[i].s_num}</td><td>${route[i].reh_name}</td><td><button type="button" class="btn btn1 mx-1" data-bs-toggle="modal" data-bs-target="#detailModal" onclick="show_detail(${route[i].s_num})">詳細</button><button type="button" class="btn btn2 mx-1" onclick="window.location.href='/route/update/${route[i].s_num}'">修改</button><button type="button" class="btn btn3 mx-1" onclick="deleteRoute(${route[i].s_num})">刪除</button></td></tr>`
+		}
+		function prev() {
+			tab1.innerHTML = tab1_th;
+			page -= 1
+			for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+				if (on_search == false) {
+					if (i < route.length) {
+						tab1.innerHTML += get_tb1_tb(route,i)
+					}	
+				} else {
+					if (i < search_route.length) {
+						tab1.innerHTML += get_tb1_tb(search_route,i);
+					}
+				}
+			}
+			if (page > 1) {
+				tab2.innerHTML = pagination("center",page);
+			} else {
+				tab2.innerHTML = pagination("first",page);
+			}
+		}
+		function next() {
+			tab1.innerHTML = tab1_th;
+			page += 1
+			for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+				if (on_search == false) {
+					if (i < route.length) {
+						tab1.innerHTML += get_tb1_tb(route,i);
+					}
+				} else {
+					if (i < search_route.length) {
+						tab1.innerHTML += get_tb1_tb(search_route,i);
+					}
+				}
+			}
+			if (page < total_page) {
+				tab2.innerHTML = pagination("center",page);
+			} else {
+				tab2.innerHTML = pagination("last",page);
+			}
+		}
+		function last() {
+			tab1.innerHTML = tab1_th
+			page = total_page;
+			for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+				if (on_search == false) {
+					if (i < route.length) {
+						tab1.innerHTML += get_tb1_tb(route,i);
+					}
+				} else {
+					if (i < search_route.length) {
+						tab1.innerHTML += get_tb1_tb(search_route,i);
+					}
+				}
+			}
+			tab2.innerHTML = pagination("last",page);
+		}
+		function first() {
+			tab1.innerHTML = tab1_th;
+			page = 1;
+			for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+				if (on_search == false) {
+					if (i < route.length) {
+						tab1.innerHTML += get_tb1_tb(route,i);
+					}
+				} else {
+					if (i < search_route.length) {
+						tab1.innerHTML += get_tb1_tb(search_route,i);
+					}
+				}
+			}
+			tab2.innerHTML = pagination("first",page);
+		}
+		document.getElementById("searchForm").addEventListener('submit',function(event) {
+			event.preventDefault();
+			id = document.getElementById("searchForm").querySelectorAll('input')[0].value;
+			name = document.getElementById("searchForm").querySelectorAll('input')[1].value;
+			search_route = route;
+			if (id !== "") {
+				search_route = search_route.filter(this_route => this_route.s_num.toString().startsWith(id));
+			}
+			if (name !== "") {
+				search_route = search_route.filter(this_route => this_route.reh_name.startsWith(name));
+			}
+			tab1.innerHTML = tab1_th;
+			if (search_route.length == 0) {
+				tab1.innerHTML = '<h3>查無路線！</h3>';
+				tab2.innerHTML = "";
+			} else {
+				page = 1;
+				for (let i =(page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+					if (i < search_route.length) {
+						tab1.innerHTML += get_tb1_tb(search_route,i);
+					}
+				}
+				total_page = Math.ceil(search_route.length/page_display);
+				if (page < total_page) {
+					tab2.innerHTML = pagination("first",page);
+				} else {
+					tab2.innerHTML = pagination("one",1);
+				}
+			}
+		});
+		function deleteRoute(id) {
+			const {suc : t} = axios.delete(`/route/delete/${id}`)
+				.then(response => {
+					alert('成功刪除路線資料！');
+					window.location.href='/route';
+				})
+				.catch(error => {
+					console.error(error);
+				});
+			console.log(t);
+		}
+		function show_detail(id) {
+			axios.get(`/api/route/${id}`)
+				.then(response => {
+					detail_tab = document.getElementById('detail_tab');
+					detail_tab.innerHTML = "";
+					let detail = response.data;
+					console.log(detail)
+					var reh_category = "";
+                               	 	if (detail.reh_category == 1) {
+                                        	reh_category = "山線";
+		                        } else if (detail.reh_category == 2) {
+						reh_category = "海線";
+		                        } else if (detail.reh_category == 3) {
+                		                reh_category = "屯線";
+		                        }
+					var reh_time = "";
+                                	if (detail.reh_time == 1) {
+		                        	reh_time = "午餐/午晚餐";
+                		        } else if (detail.reh_time == 2) {
+                                		reh_time = "晚餐";
+                                	}
+					var text = "";
+					text += `<tr><td>路線編號</td><td>${detail.s_num}</td></tr><tr><td>名稱</td><td>${detail.reh_name}</td></tr><tr><td>類別</td><td>${reh_category}</td></tr><tr><td>時段</td><td>${reh_time}</td></tr>`
+					detail_tab.innerHTML += text;
+				})
+				.catch(error => {
+					console.error(error);
+				});
+		}
+	</script>
+							
+</body>
+</html>

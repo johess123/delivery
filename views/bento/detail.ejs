@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>管理便當</title>
+</head>
+<body>
+	<%- include('../function') %>
+	<div class="col py-3">
+	<nav aria-label="breadcrumb">
+		<ol class="breadcrumb">
+		<li class="breadcrumb-item me-2"><img src="/menu.png" width="16" height="16"></li>
+		<li class="breadcrumb-item"><a href="/main">首頁</a></li>
+		<li class="breadcrumb-item"><a href="/bento">管理便當</a></li>
+		<li class="breadcrumb-item active" aria-current="page">詳細便當資料</li>
+		</ol>
+	</nav>
+	<table class="table table-bordered mt-5" id="tab">
+	</table>
+	<%- include('../sos') %>
+	<script src = 'https://cdnjs.cloudflare.com/ajax/libs/axios/0.27.2/axios.min.js' ></script>
+	<script>
+		const id = '<%= id %>';
+		axios.get(`/api/bento/${id}`)
+			.then(response => {
+				let bento = response.data;
+				var allText = '<thead class="table-primary"><tr><th>便當編號</th><th>名稱</th>';
+				for (let i = 0; i < bento.length; i++) {
+					allText += `<th>菜色${i+1}</th>`;
+				}
+				allText += "<th>價錢</th></tr></thead>";
+				allText += `<tr><td>${bento[0].s_num}</td><td>${bento[0].bo_name}</td>`
+				var price = 0;
+				for (let i = 0; i < bento.length; i++) {
+					allText += `<td><a href="/food/detail/${bento[i].ds_s_num}">${bento[i].ds_name}</a></td>`;
+					price += bento[i].price;
+				};
+				allText += `<td>${price}</td></tr>`;
+				//const description = modifyDes(food.description);
+				//allText += `<td>${description}</td>`;
+				//allText += `<td>${food.price}</td></tr>`;
+				tab.innerHTML += allText;
+			})
+			.catch(error => {
+				console.error(error);
+			});
+		function modifyDes(text) {
+			const text1 = text.split("//");
+			var result = "";
+			for (let i = 0; i < text1.length; i++) {
+				result = result+"("+(i+1)+") "+text1[i]+"<br>";
+			}
+			return result;
+		}
+	</script>
+							
+</body>
+</html>

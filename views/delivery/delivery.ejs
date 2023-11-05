@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>管理送餐員</title>
+</head>
+<body>
+	<%- include('../function') %>
+	
+	<div class="col py-3">
+	<nav aria-label="breadcrumb">
+		<ol class="breadcrumb">
+		<li class="breadcrumb-item me-2"><img src="/menu.png" width="16" height="16"></li>
+		<li class="breadcrumb-item"><a href="/main" class="bread-text">首頁</a></li>
+		<li class="breadcrumb-item active" aria-current="page">管理送餐員</li>
+		</ol>
+	</nav>
+	<form id="searchForm" method="GET">
+	<div class="row mt-5">
+		<div class="col-lg-2">
+			<input type="text" id="id" name="id" class="form-control" placeholder="送餐員編號">
+		</div>
+		<div class="col-lg-2">
+			<input type="text" id="lastname" name="lastname" class="form-control" placeholder="姓">
+		</div>
+		<div class="col-lg-2">
+			<input type="text" id="name" name="name" class="form-control" placeholder="名">
+		</div>
+		<div class="col-lg-3">
+
+			<button type="submit" class="btn btn4">
+				<img src="/search.png" width="16">
+				<span>查詢</span>
+			</button>
+			<button type="button" class="btn btn5" onclick="window.location.href='/delivery'">
+				<span>重置</span>
+			</button>
+			<button type="button" class="btn btn6" onclick="window.location.href='/delivery/create'">+ 新增送餐員</button>
+		</div>
+	</div>
+	</form>
+	<div id="tab" class="mt-4">
+		<table class="table table-bordered" id="tab1">
+		</table>
+	</div>
+	<div id="tab2" class="d-flex justify-content-end"></div>
+	</div>
+	</div>
+	</div>
+	<div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header" style="background-color: rgb(11,59,79)">
+            <h5 class="modal-title" style="color: white" id="exampleModalLabel"><b>詳細送餐員資料</b></h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table" id="detail_tab"></table>
+            </div>
+          </div>
+        </div>
+      </div>
+	<%- include('../sos') %>
+	<script src = 'https://cdnjs.cloudflare.com/ajax/libs/axios/0.27.2/axios.min.js' ></script>
+	<script>
+		var tab1 = document.getElementById('tab1');
+		const tab1_th = '<thead><tr id=tr_th><th scope="col" style="background-color:rgb(11,59,79);color: white">No.</th><th scope="col" style="background-color:rgb(11,59,79);color: white">送餐員編號</th><th scope="col" style="background-color:rgb(11,59,79);color: white">姓</th><th scope="col" style="background-color:rgb(11,59,79);color: white">名</th><th scope="col" style="background-color:rgb(11,59,79);color: white">其他功能</th></tr></thead>';
+		var id;
+		var lastname;
+		var name;
+		var delivery;
+		var search_delivery;
+		var on_search = false;
+		var page = 1;
+		var page_display = 5;
+		var total_page;
+		function pagination(pos,now_page) {
+			if (pos === "one") {
+	       			return `<nav aria-label="Page navigation example">
+			  	<ul class="pagination">
+			    	<li class="page-item active"><a class="page-link">1</a></li>
+			  	</ul>
+				</nav>`;
+			} else if (pos === "first") {
+				return `<nav aria-label="Page navigation example">
+			  	<ul class="pagination">
+	       		    	<li class="page-item active"><a class="page-link">${now_page}</a></li>
+			    	<li class="page-item">
+			      	<a class="page-link" href="#" aria-label="Next" onclick="next()">
+			        <span aria-hidden="true">&raquo;</span>
+			      	</a>
+			    	</li>
+			  	</ul>
+				</nav>`;
+			} else if (pos === "center") {
+				return `<nav aria-label="Page navigation example">
+			  	<ul class="pagination">
+				<li class="page-item">
+				<a class="page-link" href="#" aria-label="Previous" onclick="prev()">
+			        <span aria-hidden="true">&laquo;</span>
+			      	</a>
+			    	</li>
+	       		    	<li class="page-item active"><a class="page-link">${now_page}</a></li>
+			    	<li class="page-item">
+			      	<a class="page-link" href="#" aria-label="Next" onclick="next()">
+			        <span aria-hidden="true">&raquo;</span>
+			      	</a>
+			    	</li>
+			  	</ul>
+				</nav>`;
+			} else {
+				return `<nav aria-label="Page navigation example">
+			  	<ul class="pagination">
+			    	<li class="page-item">
+			      	<a class="page-link" href="#" aria-label="Previous" onclick="prev()">
+			        <span aria-hidden="true">&laquo;</span>
+			      	</a>
+			    	</li>
+	       		  	<li class="page-item active"><a class="page-link">${now_page}</a></li>
+			  	</ul>
+				</nav>`;
+			}
+		}
+		getDelivery();
+		// 取得送餐員資料
+		function getDelivery() {
+			axios.get('/api/delivery')
+				.then(response => {
+					tab1.innerHTML = tab1_th;
+					delivery = response.data;
+					for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+						if (i < delivery.length) {
+							tab1.innerHTML += get_tb1_tb(delivery,i);
+						}
+					}
+					total_page = Math.ceil(delivery.length/page_display);
+					if (page < total_page) {
+						tab2.innerHTML = pagination('first',page);
+					} else {
+						tab2.innerHTML = pagination('one',1);
+					}
+				})
+				.catch(error => {
+					console.error(error);
+				});
+		}
+		function get_tb1_tb(delivery,i) {
+			return `<tr id=tr${i%10+1}><td>${i+1}</td><td>${delivery[i].s_num}</td><td>${delivery[i].dp01}</td><td>${delivery[i].dp02}</td><td><button type="button" class="btn btn1 mx-1" data-bs-toggle="modal" data-bs-target="#detailModal" onclick="show_detail(${delivery[i].s_num})">詳細</button><button type="button" class="btn btn2 mx-1" onclick="window.location.href='/delivery/update/${delivery[i].s_num}'">修改</button><button type="button" class="btn btn3 mx-1" onclick="deleteDelivery(${delivery[i].s_num})">刪除</button></td></tr>`
+		}
+		function prev() {
+			tab1.innerHTML = tab1_th;
+			page -= 1
+			for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+				if (on_search == false) {
+					if (i < delivery.length) {
+						tab1.innerHTML += get_tb1_tb(delivery,i);
+					}	
+				} else {
+					if (i < search_delivery.length) {
+						tab1.innerHTML += get_tb1_tb(search_delivery,i);
+					}
+				}
+			}
+			if (page > 1) {
+				tab2.innerHTML = pagination("center",page);
+			} else {
+				tab2.innerHTML = pagination("first",page);
+			}
+		}
+		function next() {
+			tab1.innerHTML = tab1_th;
+			page += 1
+			for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+				if (on_search == false) {
+					if (i < delivery.length) {
+						tab1.innerHTML += get_tb1_tb(delivery,i);
+					}
+				} else {
+					if (i < search_delivery.length) {
+						tab1.innerHTML += get_tb1_tb(search_delivery,i);
+					}
+				}
+			}
+			if (page < total_page) {
+				tab2.innerHTML = pagination("center",page);
+			} else {
+				tab2.innerHTML = pagination("last",page);
+			}
+		}
+		function last() {
+			tab1.innerHTML = tab1_th;
+			page = total_page;
+			for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+				if (on_search == false) {
+					if (i < delivery.length) {
+						tab1.innerHTML += get_tb1_tb(delivery,i);
+					}
+				} else {
+					if (i < search_delivery.length) {
+						tab1.innerHTML += get_tb1_tb(search_delivery,i);
+					}
+				}
+			}
+			tab2.innerHTML = pagination("last",page);
+		}
+		function first() {
+			tab1.innerHTML = tab1_th;
+			page = 1;
+			for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+				if (on_search == false) {
+					if (i < delivery.length) {
+						tab1.innerHTML += get_tb1_tb(delivery,i);
+					}
+				} else {
+					if (i < search_delivery.length) {
+						tab1.innerHTML += get_tb1_tb(search_delivery,i);
+					}
+				}
+			}
+			tab2.innerHTML = pagination("first",page);
+		}
+		document.getElementById("searchForm").addEventListener('submit', function(event) {
+			event.preventDefault();
+			on_search = true;
+			id = document.getElementById("searchForm").querySelectorAll('input')[0].value;
+			lastname = document.getElementById("searchForm").querySelectorAll('input')[1].value;
+			name = document.getElementById("searchForm").querySelectorAll('input')[2].value;
+			search_delivery = delivery;
+			if (id !== "") {
+				search_delivery = search_delivery.filter(this_delivery => this_delivery.s_num.toString().startsWith(id));
+			}
+			if (lastname !== "") {
+				search_delivery = search_delivery.filter(this_delivery => this_delivery.dp01.startsWith(lastname));
+			}
+			if (name !== "") {
+				search_delivery = search_delivery.filter(this_delivery => this_delivery.dp02.startsWith(name));
+			}
+			tab1.innerHTML = tab1_th;
+			if (search_delivery.length == 0) {
+				tab1.innerHTML = '<h3>查無送餐員！</h3>';
+				tab2.innerHTML = "";
+			} else {
+				page = 1;
+				for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+					if (i < search_delivery.length) {	
+						tab1.innerHTML += get_tb1_tb(search_delivery,i);
+					}
+				}
+				total_page = Math.ceil(search_delivery.length/page_display);
+				if (page < total_page) {
+					tab2.innerHTML = pagination("first",page);
+				} else {
+					tab2.innerHTML = pagination("pne",1);
+				}
+			}
+		});
+		function deleteDelivery(id) {
+			const {suc : t} = axios.delete(`/delivery/delete/${id}`)
+				.then(response => {
+					alert('成功刪除送餐員資料！');
+					window.location.href='/delivery';
+				})
+				.catch(error => {
+					console.error(error);
+				});
+		}
+		function show_detail(id) {
+			axios.get(`/api/delivery/${id}`)
+				.then(response => {
+					detail_tab = document.getElementById('detail_tab');
+					detail_tab.innerHTML = "";
+					let detail = response.data;
+					var text = "";
+					text += `<tr><td>送餐員編號</td><td>${detail.s_num}</td></tr><tr><td>帳號編號</td><td>${detail.ur_s_num}</td></tr><tr><td>姓</td><td>${detail.dp01}</td></tr><tr><td>名</td><td>${detail.dp02}</td></tr><tr><td>綽號</td><td>${detail.dp_nickname}</td></tr><tr><td>加入理由</td><td>${detail.dp_reason}</td></tr><tr><td>經驗</td><td>${detail.dp_experience}</td></tr><tr><td>圖片</td>`;
+					if (detail.dp_img == null) {
+						text += `<td>無圖片</td>`;
+					} else {
+						text += `<td><img src="/dp/${detail.dp_img}" style="width:100px; height:100px;"></td>`;
+					}
+					text += "</tr>";
+					detail_tab.innerHTML += text;
+				})
+				.catch(error => {
+					console.error(error);
+				});
+		}
+	</script>
+							
+</body>
+</html>

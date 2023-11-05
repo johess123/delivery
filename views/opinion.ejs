@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>使用者意見回饋</title>
+</head>
+<body>
+	<%- include('function') %>
+	<div class="col py-3">
+	<nav aria-label="breadcrumb">
+		<ol class="breadcrumb">
+		<li class="breadcrumb-item me-2"><img src="/menu.png" width="16" height="16"></li>
+		<li class="breadcrumb-item"><a href="/main" class="bread-text">首頁</a></li>
+		<li class="breadcrumb-item active" aria-current="page">使用者意見回饋</li>
+		</ol>
+	</nav>
+	<form id="searchForm" method="GET">
+	<div class="row mt-5">
+		<div class="col-lg-2">
+			<input type="date" id="date" name="date" class="form-control" placeholder="日期">
+		</div>
+		<div class="col-lg-3">
+			<button type="submit" class="btn btn4">
+				<img src="/search.png" width="16">
+				<span>查詢</span>
+			</button>
+			<button type="button" class="btn btn5" onclick="window.location.href='/opinion'">
+				<span>重置</span>
+			</button>
+		</div>
+	</div>
+	<div id="tab" class="mt-4">
+		<table class="table table-bordered" id="tab1">
+		</table>
+	</div>
+	<div id="tab2" class="d-flex justify-content-end"></div>
+	</div>
+	</div>
+	</div>
+	<%- include('sos') %>
+	<script src = 'https://cdnjs.cloudflare.com/ajax/libs/axios/0.27.2/axios.min.js' ></script>
+	<script>
+		var tb1 = document.getElementById('tab1');
+		const tab1_th = '<thead><tr><th scope="col" style="background-color:rgb(11,59,79);color:white">No.</th><th scope="col" style="background-color:rgb(11,59,79);color:white" class="w-25">日期</th><th scope="col" style="background-color:rgb(11,59,79);color:white">內容</th></tr>';
+		var date;
+		var opinion;
+		var search_opinion;
+		var on_search = false;
+		var page = 1;
+		var page_display = 5;
+		var total_page;
+		function pagination(pos,now_page) {
+			if (pos === "one") {
+	       			return `<nav aria-label="Page navigation example">
+			  	<ul class="pagination">
+			    	<li class="page-item active"><a class="page-link">1</a></li>
+			  	</ul>
+				</nav>`;
+			} else if (pos === "first") {
+				return `<nav aria-label="Page navigation example">
+			  	<ul class="pagination">
+	       		    	<li class="page-item active"><a class="page-link">${now_page}</a></li>
+			    	<li class="page-item">
+			      	<a class="page-link" href="#" aria-label="Next" onclick="next()">
+			        <span aria-hidden="true">&raquo;</span>
+			      	</a>
+			    	</li>
+			  	</ul>
+				</nav>`;
+			} else if (pos === "center") {
+				return `<nav aria-label="Page navigation example">
+			  	<ul class="pagination">
+				<li class="page-item">
+				<a class="page-link" href="#" aria-label="Previous" onclick="prev()">
+			        <span aria-hidden="true">&laquo;</span>
+			      	</a>
+			    	</li>
+	       		    	<li class="page-item active"><a class="page-link">${now_page}</a></li>
+			    	<li class="page-item">
+			      	<a class="page-link" href="#" aria-label="Next" onclick="next()">
+			        <span aria-hidden="true">&raquo;</span>
+			      	</a>
+			    	</li>
+			  	</ul>
+				</nav>`;
+			} else {
+				return `<nav aria-label="Page navigation example">
+			  	<ul class="pagination">
+			    	<li class="page-item">
+			      	<a class="page-link" href="#" aria-label="Previous" onclick="prev()">
+			        <span aria-hidden="true">&laquo;</span>
+			      	</a>
+			    	</li>
+	       		  	<li class="page-item active"><a class="page-link">${now_page}</a></li>
+			  	</ul>
+				</nav>`;
+			}
+		};
+		// 取得意見回饋
+		axios.get('/api/opinion')
+			.then(response => {
+				tab1.innerHTML = tab1_th;
+				opinion = response.data;
+				console.log(opinion)
+				for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+					if (i < opinion.length) {
+						tab1.innerHTML += get_tb1_tb(opinion,i);
+					}
+				}
+				total_page = Math.ceil(opinion.length/page_display);
+				if (page < total_page) {
+					tab2.innerHTML = pagination('first',page);
+				} else {
+					tab2.innerHTML = pagination('one',1);
+				}
+			})
+			.catch(error => {
+				console.error(error);
+			});
+		function get_tb1_tb(opinion,i) {
+			return `<tr id=tr${i%10+1}><td>${i+1}</td><td>${opinion[i].date}</td><td>${opinion[i].content}</td></tr>`;
+		}
+		function next() {
+			tab1.innerHTML = tab1_th;
+			page += 1
+			for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+				if (on_search == false) {
+					if (i < opinion.length) {
+						tab1.innerHTML += get_tb1_tb(opinion,i);
+					}
+				} else {
+					if (i < search_opinion.length) {
+						tab1.innerHTML += get_tb1_tb(search_opinion,i);
+					}
+				}
+			}
+			if (page < total_page) {
+				tab2.innerHTML = pagination("center",page);
+			} else {
+				tab2.innerHTML = pagination("last",page);
+			}
+		}
+		function last() {
+			tab1.innerHTML = tab1_th;
+			page = total_page;
+			for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+				if (on_search == false) {
+					if (i < opinion.length) {
+						tab1.innerHTML += get_tb1_tb(opinion,i);
+					}
+				} else {
+					if (i < search_opinion.length) {
+						tab1.innerHTML += get_tb1_tb(search_opinion,i);
+					}
+				}
+			}
+			tab2.innerHTML = pagination("last",page);
+		}
+		function first() {
+			tab1.innerHTML = tab1_th;
+			page = 1;
+			for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+				if (on_search == false) {
+					if (i < opinion.length) {
+						tab1.innerHTML += get_tb1_tb(opinion,i);
+					}
+				} else {
+					if (i < search_opinion.length) {
+						tab1.innerHTML += get_tb1_tb(search_opinion,i);
+					}
+				}
+			}
+			tab2.innerHTML = pagination("first",page);
+		}
+		function prev() {
+			tab1.innerHTML = tab1_th;
+			page -= 1
+			for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+				if (on_search == false) {
+					if (i < opinion.length) {
+						tab1.innerHTML += get_tb1_tb(opinion,i);
+					}	
+				} else {
+					if (i < search_opinion.length) {
+						tab1.innerHTML += get_tb1_tb(search_opinion,i);
+					}
+				}
+			}
+			if (page > 1) {
+				tab2.innerHTML = pagination("center",page);
+			} else {
+				tab2.innerHTML = pagination("first",page);
+			}
+		}
+		document.getElementById("searchForm").addEventListener('submit', function(event) {
+			event.preventDefault(); // 防止送出後頁面刷新
+			on_search = true;
+			date = document.getElementById("searchForm").querySelectorAll('input')[0].value;
+			search_opinion = opinion;
+			if (date !== "") {
+				search_opinion = search_opinion.filter(this_opinion => this_opinion.date.startsWith(date));
+			}
+			tab1.innerHTML = tab1_th;
+			if (search_opinion.length == 0) {
+				tab1.innerHTML = '<h3>查無意見回饋！</h3>';
+				tab2.innerHTML = "";
+			} else {
+				page = 1;
+				for (let i = (page-1)*page_display; i < (page-1)*page_display+page_display; i++) {
+					if (i < search_opinion.length) {
+						tab1.innerHTML += get_tb1_tb(search_opinion,i)
+					}
+				}
+				total_page = Math.ceil(search_opinion.length/page_display);
+				if (page < total_page) {
+					tab2.innerHTML = pagination("first",page);
+				} else {
+					tab2.innerHTML = pagination("one",1);
+				}
+			}
+		})
+	</script>
+							
+</body>
+</html>
